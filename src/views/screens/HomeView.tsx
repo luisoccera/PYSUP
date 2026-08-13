@@ -14,7 +14,7 @@ export function HomeScreen({ name, wide, onDiscover, onFriends, onOpen }: { name
     <ScrollView style={styles.screen} contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false}>
       <PageTitle eyebrow="TU NOCHE, MEJOR ELEGIDA" title={`Hola, ${name}. ¿Qué vemos hoy?`} description="Afinamos estas sugerencias con tu actividad, tus reseñas y lo que está disponible en México." />
       <View style={[styles.homeHero, wide && styles.homeHeroWide]}>
-        <ImageBackground source={{ uri: catalogue[0].image }} style={styles.homeHeroImage} imageStyle={styles.homeHeroRadius}>
+        <ImageBackground source={catalogue[0].image} style={styles.homeHeroImage} imageStyle={styles.homeHeroRadius}>
           <LinearGradient colors={wide ? ['rgba(7,10,18,0.97)', 'rgba(7,10,18,0.62)', 'rgba(7,10,18,0.1)'] : ['rgba(7,10,18,0.18)', 'rgba(7,10,18,0.98)']} start={{ x: 0, y: 0 }} end={{ x: wide ? 1 : 0, y: 1 }} style={styles.homeHeroGradient}>
             <View style={styles.heroInfo}>
               <View style={styles.heroBadges}><Text style={styles.heroMatch}>96% PARA TI</Text><Text style={styles.heroPremiere}>ESTRENO</Text></View>

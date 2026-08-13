@@ -148,7 +148,7 @@ function SimultaneousRoom({ controller }: { controller: FriendsControllerState }
   return (
     <View style={styles.activeRoom}>
       <View style={styles.activeRoomTop}><View><Text style={styles.roomKicker}>SALA PRIVADA · {controller.selectedRoomIds.length + 1} PERSONAS</Text><Text style={styles.activeRoomTitle}>Señal nocturna</Text></View><View style={styles.livePill}><View style={styles.liveSmall} /><Text style={styles.liveText}>EN LÍNEA</Text></View></View>
-      <ImageBackground source={{ uri: catalogue[0].image }} style={styles.roomPlayer} imageStyle={styles.roomPlayerRadius}>
+      <ImageBackground source={catalogue[0].image} style={styles.roomPlayer} imageStyle={styles.roomPlayerRadius}>
         <LinearGradient colors={['rgba(7,10,18,0.2)', 'rgba(7,10,18,0.9)']} style={styles.roomPlayerOverlay}>
           <Pressable accessibilityLabel={controller.playing ? 'Pausar para todos' : 'Reproducir para todos'} onPress={controller.togglePlaying} style={styles.playButton}><Feather name={controller.playing ? 'pause' : 'play'} size={28} color={colors.ink} /></Pressable>
           <View style={styles.playerBottom}><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.min(100, (controller.seconds / 7080) * 100)}%` }]} /></View><View style={styles.timeRow}><Text style={styles.timeText}>{formatTime(controller.seconds)}</Text><Text style={styles.syncText}><Feather name="link" size={12} color={colors.success} /> Sincronizado</Text><Text style={styles.timeText}>1:58:00</Text></View></View>

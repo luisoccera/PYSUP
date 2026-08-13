@@ -35,7 +35,7 @@ export function ProfileScreen({ name, country, reviews, liked, saved, onOpen, on
           <SectionTitle eyebrow="TU VOZ" title="Reseñas recientes" />
           <View style={styles.reviewsList}>{reviews.map((review) => { const content = catalogue.find((item) => item.id === review.contentId)!; return (
             <Pressable key={review.id} onPress={() => onOpen(content)} style={styles.reviewCard}>
-              <ImageBackground source={{ uri: content.image }} style={styles.reviewPoster} imageStyle={styles.reviewPosterRadius}><LinearGradient colors={['transparent', 'rgba(7,10,18,0.7)']} style={StyleSheet.absoluteFill} /></ImageBackground>
+              <ImageBackground source={content.image} style={styles.reviewPoster} imageStyle={styles.reviewPosterRadius}><LinearGradient colors={['transparent', 'rgba(7,10,18,0.7)']} style={StyleSheet.absoluteFill} /></ImageBackground>
               <View style={styles.reviewContent}><View style={styles.reviewTop}><View><Text style={styles.reviewTitle}>{content.title}</Text><Text style={styles.reviewDate}>{review.date}</Text></View><Stars value={review.rating} /></View><Text numberOfLines={3} style={styles.reviewText}>{review.text}</Text><View style={styles.reviewLikes}><Feather name="heart" size={13} color={colors.textMuted} /><Text style={styles.reviewLikesText}>{review.likes} personas encontraron útil esta reseña</Text></View></View>
             </Pressable>
           ); })}</View>

@@ -139,7 +139,7 @@ export function MatchBar({ value }: { value: number }) {
 export function MiniPoster({ item, onPress, width = 172 }: { item: ContentItem; onPress: () => void; width?: number }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.miniPoster, { width }, pressed && styles.pressed]}>
-      <ImageBackground source={{ uri: item.image }} style={styles.miniPosterImage} imageStyle={styles.miniPosterImageRadius}>
+      <ImageBackground source={item.image} style={styles.miniPosterImage} imageStyle={styles.miniPosterImageRadius}>
         <LinearGradient colors={['transparent', 'rgba(7,10,18,0.96)']} style={styles.miniPosterGradient}>
           <View style={styles.miniPosterTop}><Text style={styles.matchChip}>{item.match}%</Text></View>
           <View>
@@ -197,12 +197,12 @@ export function SwipeDeck({ item, nextItem, onAction, onOpen }: {
     <View style={styles.deckWrap}>
       {nextItem && (
         <View style={[styles.swipeCard, styles.nextCard]}>
-          <ImageBackground source={{ uri: nextItem.image }} style={styles.swipeImage} imageStyle={styles.swipeImageRadius} />
+          <ImageBackground source={nextItem.image} style={styles.swipeImage} imageStyle={styles.swipeImageRadius} />
         </View>
       )}
       <Animated.View {...responder.panHandlers} style={[styles.swipeCard, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] }]}>
         <Pressable onPress={() => onOpen(item)} style={styles.swipePressable}>
-          <ImageBackground source={{ uri: item.image }} style={styles.swipeImage} imageStyle={styles.swipeImageRadius}>
+          <ImageBackground source={item.image} style={styles.swipeImage} imageStyle={styles.swipeImageRadius}>
             <LinearGradient colors={['rgba(7,10,18,0.05)', 'rgba(7,10,18,0.12)', 'rgba(7,10,18,0.98)']} locations={[0, 0.48, 1]} style={styles.swipeGradient}>
               <View style={styles.swipeTopRow}>
                 <View style={styles.matchBig}><Text style={styles.matchBigValue}>{item.match}%</Text><Text style={styles.matchBigLabel}>MATCH</Text></View>

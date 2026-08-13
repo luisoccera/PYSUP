@@ -27,5 +27,6 @@
     "typecheck": "tsc --noEmit",
     "export:web": "expo export --platform web"
   },
-  "private": true
+  "private": true,
+  "license": "UNLICENSED"
 }

@@ -1,3 +1,5 @@
+import type { ImageSourcePropType } from 'react-native';
+
 export type ProviderId = 'netflix' | 'max' | 'disney' | 'crunchyroll' | 'prime';
 
 export type Provider = {
@@ -21,7 +23,7 @@ export type ContentItem = {
   genres: string[];
   providers: ProviderId[];
   countries: string[];
-  image: string;
+  image: ImageSourcePropType;
   palette: [string, string];
   synopsis: string;
   reason: string;

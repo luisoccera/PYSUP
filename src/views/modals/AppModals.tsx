@@ -22,7 +22,7 @@ export function ContentModal({ item, visible, onClose, onReview, isLiked, isSave
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.detailBackdrop}><View style={styles.detailModal}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <ImageBackground source={{ uri: item.image }} style={styles.detailHero} imageStyle={styles.detailHeroRadius}>
+          <ImageBackground source={item.image} style={styles.detailHero} imageStyle={styles.detailHeroRadius}>
             <LinearGradient colors={['rgba(7,10,18,0.12)', colors.panel]} style={styles.detailGradient}>
               <View style={styles.detailClose}><IconButton icon="x" label="Cerrar" onPress={onClose} /></View>
               <View style={styles.detailHeroCopy}><Text style={styles.detailMatch}>{item.match}% PARA TI</Text><Text style={styles.detailTitle}>{item.title}</Text><Text style={styles.detailSubtitle}>{item.subtitle}</Text></View>

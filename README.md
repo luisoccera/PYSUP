@@ -1,5 +1,19 @@
 # PYSUP
 
+PYSUP es una aplicación multiplataforma para descubrir, comentar y compartir
+películas y series con recomendaciones personalizadas.
+
+## Propiedad y autoría
+
+El código de aplicación dentro de `src/`, `App.tsx` e `index.ts`, junto con los
+recursos visuales de PYSUP, fue creado específicamente para este proyecto. No se
+incluyen fragmentos de código copiados ni atribuciones de otros proyectos en el
+código fuente propio.
+
+PYSUP es software propietario y se distribuye con todos los derechos
+reservados. Las bibliotecas instaladas como dependencias permanecen separadas y
+conservan las licencias de sus autores.
+
 PYSUP es un MVP multiplataforma para descubrir películas, series y anime con una experiencia de deslizamiento, recomendaciones filtradas por país, reseñas, comunidad, amigos y salas sincronizadas.
 
 ## Ejecutar

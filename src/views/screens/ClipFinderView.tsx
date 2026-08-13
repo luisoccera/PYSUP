@@ -73,7 +73,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
                 <TextInput
                   value={url}
                   onChangeText={changeUrl}
-                  placeholder="https://www.tiktok.com/@usuario/video/…"
+                  placeholder="Pega aquí un enlace público de TikTok, X, Instagram o YouTube"
                   placeholderTextColor={colors.textDim}
                   keyboardType="url"
                   autoCapitalize="none"
@@ -143,7 +143,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
         <View style={styles.resultSection}>
           <View style={styles.resultHeading}><View><Text style={styles.resultEyebrow}>94% DE CONFIANZA</Text><Text style={styles.resultHeadingTitle}>Encontramos una coincidencia</Text></View><Button label="Analizar otro" icon="rotate-ccw" variant="ghost" compact onPress={reset} /></View>
           <View style={[styles.resultCard, compact && styles.resultCardCompact]}>
-            <ImageBackground source={{ uri: result.image }} style={[styles.resultImage, compact && styles.resultImageCompact]} imageStyle={styles.resultImageRadius}>
+            <ImageBackground source={result.image} style={[styles.resultImage, compact && styles.resultImageCompact]} imageStyle={styles.resultImageRadius}>
               <LinearGradient colors={['transparent', 'rgba(7,10,18,0.86)']} style={StyleSheet.absoluteFill} />
               <View style={styles.confidenceBadge}><Text style={styles.confidenceValue}>94%</Text><Text style={styles.confidenceLabel}>COINCIDE</Text></View>
             </ImageBackground>
