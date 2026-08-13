@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "PYSUP",
+    "slug": "pysup",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "pysup",
+    "description": "Descubre, comparte y disfruta películas y series con recomendaciones hechas para ti.",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.pysup.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+      ,"package": "app.pysup.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "PYSUP",
+      "shortName": "PYSUP",
+      "themeColor": "#070A12",
+      "backgroundColor": "#070A12"
+    }
+  }
+}
