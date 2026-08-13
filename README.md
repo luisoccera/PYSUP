@@ -44,6 +44,7 @@ El código de aplicación vive en tres capas explícitas dentro de `src/`:
 - Inicio de sesión, registro, recuperación y validación local de formulario.
 - Onboarding de país, plataformas e intereses.
 - Mazo de recomendaciones interactivo: pasar, guardar o marcar que gusta.
+- Ruleta de joyas ocultas que prioriza afinidad personal, penaliza exposición viral y explica por qué cada título quedó fuera del radar.
 - Identificación demostrativa desde enlaces públicos de TikTok, Instagram, X y YouTube, o mediante un fragmento de video subido.
 - Motivos explicables para cada recomendación y disponibilidad por región.
 - Fichas de contenido con calificación y publicación de reseñas.
@@ -52,6 +53,7 @@ El código de aplicación vive en tres capas explícitas dentro de `src/`:
 - Búsqueda, selección y alta demostrativa de amigos.
 - Mensajería directa independiente con cada amigo, incluidos los contactos recién agregados.
 - Sala privada con reproducción, pausa, avance, retroceso y chat grupal sincronizados.
+- Notificaciones accionables que abren directamente la sala, conversación, foro, reseña o recomendación correspondiente.
 - Diseño adaptable para navegador, Android, iPhone y tablet.
 
 Los datos y la autenticación son locales para que el prototipo pueda probarse sin servidor. El estado de sesión se conserva en el dispositivo.

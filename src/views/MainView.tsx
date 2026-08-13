@@ -9,6 +9,7 @@ import { ForumScreen } from './screens/ForumView';
 import { FriendsScreen } from './screens/FriendsView';
 import { HomeScreen } from './screens/HomeView';
 import { ProfileScreen } from './screens/ProfileView';
+import { RouletteScreen } from './screens/RouletteView';
 import { SettingsScreen } from './screens/SettingsView';
 import { mainStyles as styles } from './styles/mainStyles';
 
@@ -40,10 +41,16 @@ export function MainView({ controller, onLogout }: MainViewProps) {
     topics,
     createTopic,
     friendsController,
+    rouletteController,
     selectedContent,
     setSelectedContent,
     notificationsOpen,
     setNotificationsOpen,
+    notifications,
+    unreadNotificationIds,
+    openNotification,
+    focusedForumTopicId,
+    clearFocusedForumTopic,
     toggleSelectedLike,
     toggleSelectedSave,
   } = controller;
@@ -64,6 +71,7 @@ export function MainView({ controller, onLogout }: MainViewProps) {
           <AppHeader
             name={name}
             country={selectedCountry}
+            notificationCount={unreadNotificationIds.length}
             onNotifications={() => setNotificationsOpen(true)}
             onProfile={() => setActiveTab('profile')}
             onSettings={() => setActiveTab('settings')}
@@ -86,7 +94,10 @@ export function MainView({ controller, onLogout }: MainViewProps) {
               onSaved={save}
             />
           )}
-          {activeTab === 'forum' && <ForumScreen topics={topics} onCreate={createTopic} />}
+          {activeTab === 'roulette' && (
+            <RouletteScreen controller={rouletteController} likedIds={likedIds} onLike={like} onOpen={setSelectedContent} />
+          )}
+          {activeTab === 'forum' && <ForumScreen topics={topics} onCreate={createTopic} focusedTopicId={focusedForumTopicId} onFocusHandled={clearFocusedForumTopic} />}
           {activeTab === 'friends' && <FriendsScreen controller={friendsController} />}
           {activeTab === 'profile' && (
             <ProfileScreen
@@ -127,6 +138,9 @@ export function MainView({ controller, onLogout }: MainViewProps) {
       />
       <NotificationsModal
         visible={notificationsOpen}
+        notifications={notifications}
+        unreadIds={unreadNotificationIds}
+        onSelect={openNotification}
         onClose={() => setNotificationsOpen(false)}
       />
     </SafeAreaView>

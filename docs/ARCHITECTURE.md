@@ -8,6 +8,8 @@ App.tsx
     ├── models
     │   ├── types.ts
     │   ├── catalogue.ts
+    │   ├── notifications.ts
+    │   ├── roulette.ts
     │   ├── defaults.ts
     │   └── sessionRepository.ts
     ├── controllers
@@ -15,6 +17,7 @@ App.tsx
     │   ├── AuthController.tsx
     │   ├── MainController.tsx
     │   ├── ClipFinderController.tsx
+    │   ├── useRouletteController.ts
     │   └── use*Controller.ts
     └── views
         ├── screens
@@ -65,6 +68,16 @@ La regla de dependencia es: el modelo permanece independiente, el controlador co
 4. Generar candidatos sólo del catálogo vigente en el país elegido.
 5. Ordenar por afinidad, diversidad, novedad y señales sociales.
 6. Mostrar una explicación breve y permitir corregir la recomendación.
+
+### Ruleta de joyas ocultas
+
+`models/roulette.ts` construye el perfil de gusto con calificaciones, favoritos y guardados. La clasificación combina afinidad y nivel de descubrimiento, y resta puntos por exposición excesiva. Los títulos ya reseñados se excluyen cuando quedan suficientes alternativas regionales.
+
+`useRouletteController.ts` conserva el resultado y selecciona el siguiente candidato. `RouletteView.tsx` se limita a animar la rueda, presentar las razones y enviar las acciones del usuario al controlador principal.
+
+## Navegación desde notificaciones
+
+Cada aviso contiene un destino tipado en `models/notifications.ts`. El controlador principal marca el aviso como leído y resuelve el destino hacia una ficha, publicación de foro, conversación directa, sala sincronizada, perfil o ruleta. El modal de notificaciones no decide rutas ni modifica estado global.
 
 ## Seguridad y confianza
 

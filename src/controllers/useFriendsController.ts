@@ -102,6 +102,12 @@ export function useFriendsController(friends: Friend[], onAddFriend: (friend: Fr
     setPlaying(false);
   };
 
+  const openRoomInvitation = (friendId: string) => {
+    setSelectedRoomIds((current) => current.includes(friendId) ? current : [...current, friendId]);
+    setRoomActive(true);
+    setMode('room');
+  };
+
   return {
     mode,
     setMode,
@@ -122,6 +128,7 @@ export function useFriendsController(friends: Friend[], onAddFriend: (friend: Fr
     setDirectDraft,
     sendDirectMessage,
     roomActive,
+    openRoomInvitation,
     createRoom: () => selectedRoomIds.length && setRoomActive(true),
     closeRoom,
     playing,

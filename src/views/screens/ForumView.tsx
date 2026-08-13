@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ForumTopic } from '../../models/types';
@@ -7,9 +7,9 @@ import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
 
-function TopicCard({ topic, onOpen }: { topic: ForumTopic; onOpen: () => void }) {
+function TopicCard({ topic, highlighted, onOpen }: { topic: ForumTopic; highlighted?: boolean; onOpen: () => void }) {
   return (
-    <Pressable onPress={onOpen} style={({ pressed }) => [styles.topicCard, pressed && styles.cardPressed]}>
+    <Pressable onPress={onOpen} style={({ pressed }) => [styles.topicCard, highlighted && styles.topicCardHighlighted, pressed && styles.cardPressed]}>
       <View style={styles.topicTop}>
         <Avatar initials={topic.initials} size={38} color={topic.kind === 'identify' ? '#457B9D' : '#6B5CA5'} />
         <View style={styles.topicAuthor}><Text style={styles.topicAuthorName}>{topic.author}</Text><Text style={styles.topicTime}>{topic.time}</Text></View>
@@ -27,7 +27,7 @@ function TopicCard({ topic, onOpen }: { topic: ForumTopic; onOpen: () => void })
   );
 }
 
-export function ForumScreen({ topics, onCreate }: { topics: ForumTopic[]; onCreate: (topic: ForumTopic) => void }) {
+export function ForumScreen({ topics, onCreate, focusedTopicId, onFocusHandled }: { topics: ForumTopic[]; onCreate: (topic: ForumTopic) => void; focusedTopicId: string | null; onFocusHandled: () => void }) {
   const { width } = useWindowDimensions();
   const compact = width < 720;
   const [kind, setKind] = useState<'discussion' | 'identify'>('discussion');
@@ -35,7 +35,19 @@ export function ForumScreen({ topics, onCreate }: { topics: ForumTopic[]; onCrea
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<ForumTopic | null>(null);
   const visible = topics.filter((topic) => topic.kind === kind && `${topic.title} ${topic.body}`.toLowerCase().includes(search.toLowerCase()));
+
+  useEffect(() => {
+    if (!focusedTopicId) return;
+    const focused = topics.find((topic) => topic.id === focusedTopicId);
+    if (focused) {
+      setKind(focused.kind);
+      setSearch('');
+      setSelectedTopic(focused);
+    }
+    onFocusHandled();
+  }, [focusedTopicId, onFocusHandled, topics]);
 
   const create = () => {
     if (title.trim().length < 5 || body.trim().length < 10) return;
@@ -54,7 +66,7 @@ export function ForumScreen({ topics, onCreate }: { topics: ForumTopic[]; onCrea
         <View style={styles.searchBox}><Feather name="search" size={17} color={colors.textDim} /><TextInput value={search} onChangeText={setSearch} placeholder="Buscar conversaciones" placeholderTextColor={colors.textDim} style={styles.searchInput} /></View>
       </View>
       {kind === 'identify' && <View style={styles.identifyInfo}><View style={styles.identifyIcon}><Feather name="help-circle" size={21} color={colors.blue} /></View><View style={styles.identifyCopy}><Text style={styles.identifyTitle}>Cuantos más detalles, mejor</Text><Text style={styles.identifyText}>Describe escenas, época aproximada, idioma, actores, animación o dónde la viste. La comunidad puede marcar la respuesta correcta.</Text></View></View>}
-      <View style={styles.topicGrid}>{visible.map((topic) => <TopicCard key={topic.id} topic={topic} onOpen={() => {}} />)}</View>
+      <View style={styles.topicGrid}>{visible.map((topic) => <TopicCard key={topic.id} topic={topic} highlighted={topic.id === focusedTopicId} onOpen={() => setSelectedTopic(topic)} />)}</View>
       {!visible.length && <View style={styles.emptyState}><Feather name="search" size={30} color={colors.textDim} /><Text style={styles.emptyTitle}>No encontramos conversaciones</Text><Text style={styles.emptyText}>Prueba con otras palabras o crea la primera publicación.</Text></View>}
 
       <Modal transparent visible={createOpen} animationType="fade" onRequestClose={() => setCreateOpen(false)}>
@@ -64,6 +76,12 @@ export function ForumScreen({ topics, onCreate }: { topics: ForumTopic[]; onCrea
           <Text style={styles.inputLabel}>Detalles</Text><TextInput value={body} onChangeText={setBody} multiline maxLength={800} placeholder="Comparte lo que recuerdas, tu teoría o el contexto de la conversación…" placeholderTextColor={colors.textDim} style={[styles.modalInput, styles.modalTextarea]} />
           <View style={styles.composeTips}><Feather name="shield" size={15} color={colors.success} /><Text style={styles.composeTipsText}>Marca los spoilers y conversa sin ataques personales. Tus publicaciones son visibles para la comunidad.</Text></View>
           <View style={styles.modalActions}><Button label="Cancelar" variant="ghost" onPress={() => setCreateOpen(false)} style={styles.modalAction} /><Button label="Publicar" icon="send" disabled={title.trim().length < 5 || body.trim().length < 10} onPress={create} style={styles.modalAction} /></View>
+        </View></View>
+      </Modal>
+
+      <Modal transparent visible={!!selectedTopic} animationType="fade" onRequestClose={() => setSelectedTopic(null)}>
+        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+          {selectedTopic && <><View style={styles.modalHeader}><View style={styles.topicDetailHeading}><Text style={styles.modalEyebrow}>{selectedTopic.kind === 'identify' ? 'AYÚDAME A ENCONTRARLA' : 'DEBATE DE LA COMUNIDAD'}</Text><Text style={styles.modalTitle}>{selectedTopic.title}</Text></View><IconButton icon="x" label="Cerrar conversación" onPress={() => setSelectedTopic(null)} /></View><ScrollView showsVerticalScrollIndicator={false}><View style={styles.topicDetailAuthor}><Avatar initials={selectedTopic.initials} size={42} color={selectedTopic.kind === 'identify' ? '#457B9D' : '#6B5CA5'} /><View><Text style={styles.topicAuthorName}>{selectedTopic.author}</Text><Text style={styles.topicTime}>{selectedTopic.time}</Text></View></View><Text style={styles.topicDetailBody}>{selectedTopic.body}</Text><View style={styles.topicTags}>{selectedTopic.tags.map((tag) => <Pill key={tag} label={tag} />)}</View><View style={styles.topicDetailStats}><View style={styles.topicMetric}><Feather name="message-circle" size={15} color={colors.lime} /><Text style={styles.topicMetricText}>{selectedTopic.replies} respuestas</Text></View><View style={styles.topicMetric}><Feather name="heart" size={15} color={colors.coral} /><Text style={styles.topicMetricText}>{selectedTopic.likes} reacciones</Text></View></View><View style={styles.topicDetailReply}><Text style={styles.topicDetailReplyLabel}>RESPUESTA RECIENTE</Text><Text style={styles.topicDetailReplyText}>También me fijé en ese detalle. La escena anterior cambia ligeramente y parece confirmar que no es un error de continuidad.</Text><Text style={styles.topicDetailReplyAuthor}>Sofía R. · Hace 6 min</Text></View><Button label="Responder en la conversación" icon="message-square" onPress={() => {}} style={styles.topicReplyButton} /></ScrollView></>}
         </View></View>
       </Modal>
     </ScrollView>

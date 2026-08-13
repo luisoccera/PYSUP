@@ -10,12 +10,13 @@ import { mainStyles as styles } from '../styles/mainStyles';
 export const navItems: { id: TabId; label: string; icon: IconName }[] = [
   { id: 'home', label: 'Inicio', icon: 'home' },
   { id: 'discover', label: 'Descubrir', icon: 'compass' },
+  { id: 'roulette', label: 'Ruleta', icon: 'disc' },
   { id: 'forum', label: 'Foros', icon: 'message-circle' },
   { id: 'friends', label: 'Amigos', icon: 'users' },
   { id: 'settings', label: 'Config.', icon: 'settings' },
 ];
 
-export function AppHeader({ name, country, onNotifications, onProfile, onSettings }: { name: string; country: string; onNotifications: () => void; onProfile: () => void; onSettings: () => void }) {
+export function AppHeader({ name, country, notificationCount, onNotifications, onProfile, onSettings }: { name: string; country: string; notificationCount: number; onNotifications: () => void; onProfile: () => void; onSettings: () => void }) {
   const selectedCountry = countries.find((item) => item.code === country);
   return (
     <View style={styles.appHeader}>
@@ -23,7 +24,7 @@ export function AppHeader({ name, country, onNotifications, onProfile, onSetting
         <Pressable accessibilityRole="button" accessibilityLabel="Cambiar país" onPress={onSettings} style={({ pressed }) => [styles.locationChip, pressed && styles.headerPressed]}><Text style={styles.locationFlag}>{selectedCountry?.code}</Text><Text style={styles.locationText}>{selectedCountry?.name}</Text><Feather name="chevron-down" size={13} color={colors.textMuted} /></Pressable>
       </View>
       <View style={styles.headerActions}>
-        <IconButton icon="bell" label="Notificaciones" onPress={onNotifications} badge />
+        <IconButton icon="bell" label={`Notificaciones${notificationCount ? `, ${notificationCount} ${notificationCount === 1 ? 'nueva' : 'nuevas'}` : ''}`} onPress={onNotifications} badge={notificationCount > 0} />
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir mi perfil" onPress={onProfile} style={({ pressed }) => [styles.headerAvatarButton, pressed && styles.headerPressed]}>
           <Avatar initials={name.slice(0, 2).toUpperCase()} size={42} color="#5E4EA1" online />
         </Pressable>

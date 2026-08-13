@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ImageBackground, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ContentItem, Review } from '../../models/types';
-import { Button, IconButton, IconName, Pill, ProviderBadge } from '../components/ui';
+import { AppNotification, ContentItem, Review } from '../../models/types';
+import { Button, IconButton, Pill, ProviderBadge } from '../components/ui';
 import { Stars } from '../screens/ProfileView';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
@@ -46,11 +46,6 @@ export function ContentModal({ item, visible, onClose, onReview, isLiked, isSave
   );
 }
 
-export function NotificationsModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const notifications = [
-    { icon: 'users' as IconName, title: 'Sofía te invitó a una sala', text: 'Señal nocturna · Hoy, 9:30 p. m.', color: colors.lime },
-    { icon: 'message-circle' as IconName, title: '3 respuestas nuevas', text: 'En “Series cortas que sí cierran bien”.', color: colors.blue },
-    { icon: 'heart' as IconName, title: 'Tu reseña fue útil', text: '18 personas reaccionaron a tu reseña.', color: colors.coral },
-  ];
-  return <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}><Pressable onPress={onClose} style={styles.notificationBackdrop}><Pressable onPress={() => {}} style={styles.notificationPanel}><View style={styles.notificationHeader}><Text style={styles.notificationTitle}>Notificaciones</Text><IconButton icon="x" label="Cerrar" onPress={onClose} /></View>{notifications.map((item) => <View key={item.title} style={styles.notificationRow}><View style={[styles.notificationIcon, { backgroundColor: item.color }]}><Feather name={item.icon} size={17} color={colors.ink} /></View><View style={styles.notificationCopy}><Text style={styles.notificationItemTitle}>{item.title}</Text><Text style={styles.notificationItemText}>{item.text}</Text></View><View style={styles.unreadDot} /></View>)}</Pressable></Pressable></Modal>;
+export function NotificationsModal({ visible, notifications, unreadIds, onSelect, onClose }: { visible: boolean; notifications: AppNotification[]; unreadIds: string[]; onSelect: (notification: AppNotification) => void; onClose: () => void }) {
+  return <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}><Pressable onPress={onClose} style={styles.notificationBackdrop}><Pressable onPress={() => {}} style={styles.notificationPanel}><View style={styles.notificationHeader}><View><Text style={styles.notificationTitle}>Notificaciones</Text><Text style={styles.notificationSubtitle}>{unreadIds.length ? `${unreadIds.length} ${unreadIds.length === 1 ? 'pendiente' : 'pendientes'}` : 'Todo al día'}</Text></View><IconButton icon="x" label="Cerrar" onPress={onClose} /></View><ScrollView style={styles.notificationList} showsVerticalScrollIndicator={false}>{notifications.map((item) => { const unread = unreadIds.includes(item.id); return <Pressable accessibilityRole="button" accessibilityLabel={`Abrir notificación: ${item.title}`} key={item.id} onPress={() => onSelect(item)} style={({ pressed }) => [styles.notificationRow, !unread && styles.notificationRowRead, pressed && styles.cardPressed]}><View style={[styles.notificationIcon, { backgroundColor: item.color }]}><Feather name={item.icon} size={17} color={colors.ink} /></View><View style={styles.notificationCopy}><Text style={styles.notificationItemTitle}>{item.title}</Text><Text style={styles.notificationItemText}>{item.text}</Text></View>{unread ? <View style={styles.unreadDot} /> : <Feather name="check" size={14} color={colors.success} />}<Feather name="chevron-right" size={16} color={colors.textDim} /></Pressable>; })}</ScrollView></Pressable></Pressable></Modal>;
 }

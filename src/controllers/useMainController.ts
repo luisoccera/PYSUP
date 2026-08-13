@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useFriendsController } from './useFriendsController';
+import { useRouletteController } from './useRouletteController';
 import { defaultPreferences, seedReviews } from '../models/defaults';
-import { initialFriends, initialTopics } from '../models/catalogue';
+import { catalogue, initialFriends, initialTopics } from '../models/catalogue';
+import { initialNotifications } from '../models/notifications';
 import {
+  AppNotification,
   AppPreferences,
   ContentItem,
   ForumTopic,
@@ -40,6 +43,8 @@ export function useMainController({ initialName, country, initialConnected }: Ma
   const [friends, setFriends] = useState<Friend[]>(initialFriends);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadNotificationIds, setUnreadNotificationIds] = useState(initialNotifications.map((item) => item.id));
+  const [focusedForumTopicId, setFocusedForumTopicId] = useState<string | null>(null);
 
   const toggleProvider = (id: ProviderId) => {
     setConnectedProviders((current) => current.includes(id)
@@ -59,6 +64,38 @@ export function useMainController({ initialName, country, initialConnected }: Ma
   const createTopic = (topic: ForumTopic) => setTopics((current) => [topic, ...current]);
   const addFriend = (friend: Friend) => setFriends((current) => current.some((item) => item.id === friend.id) ? current : [...current, friend]);
   const friendsController = useFriendsController(friends, addFriend);
+  const rouletteController = useRouletteController({ likedIds, savedIds, reviews, country: selectedCountry });
+
+  const openNotification = (notification: AppNotification) => {
+    setNotificationsOpen(false);
+    setUnreadNotificationIds((current) => current.filter((id) => id !== notification.id));
+    const destination = notification.destination;
+    if (destination.kind === 'content') {
+      const content = catalogue.find((item) => item.id === destination.contentId);
+      if (content) setSelectedContent(content);
+      return;
+    }
+    if (destination.kind === 'forum') {
+      setFocusedForumTopicId(destination.topicId);
+      setActiveTab('forum');
+      return;
+    }
+    if (destination.kind === 'friend') {
+      friendsController.openConversation(destination.friendId);
+      setActiveTab('friends');
+      return;
+    }
+    if (destination.kind === 'room') {
+      friendsController.openRoomInvitation(destination.friendId);
+      setActiveTab('friends');
+      return;
+    }
+    if (destination.kind === 'profile') {
+      setActiveTab('profile');
+      return;
+    }
+    setActiveTab('roulette');
+  };
 
   return {
     activeTab,
@@ -81,6 +118,12 @@ export function useMainController({ initialName, country, initialConnected }: Ma
     createTopic,
     friends,
     friendsController,
+    rouletteController,
+    notifications: initialNotifications,
+    unreadNotificationIds,
+    openNotification,
+    focusedForumTopicId,
+    clearFocusedForumTopic: () => setFocusedForumTopicId(null),
     selectedContent,
     setSelectedContent,
     notificationsOpen,

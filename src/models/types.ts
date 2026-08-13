@@ -74,7 +74,42 @@ export type Review = {
   likes: number;
 };
 
-export type TabId = 'home' | 'discover' | 'forum' | 'friends' | 'profile' | 'settings';
+export type TabId = 'home' | 'discover' | 'roulette' | 'forum' | 'friends' | 'profile' | 'settings';
+
+export type NotificationDestination =
+  | { kind: 'content'; contentId: string }
+  | { kind: 'forum'; topicId: string }
+  | { kind: 'friend'; friendId: string }
+  | { kind: 'room'; friendId: string }
+  | { kind: 'profile'; reviewId?: string }
+  | { kind: 'roulette' };
+
+export type AppNotification = {
+  id: string;
+  icon: 'users' | 'message-circle' | 'heart' | 'film' | 'message-square';
+  title: string;
+  text: string;
+  color: string;
+  destination: NotificationDestination;
+};
+
+export type HiddenGemProfile = {
+  contentId: string;
+  obscurity: number;
+  exposure: number;
+  whyForgotten: string;
+  editorialSignal: string;
+};
+
+export type RouletteRecommendation = {
+  content: ContentItem;
+  affinity: number;
+  obscurity: number;
+  score: number;
+  whyForgotten: string;
+  editorialSignal: string;
+  tasteSignals: string[];
+};
 
 export type PreferenceKey =
   | 'pushNotifications'
