@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ContentItem, ProviderId } from '../../models/types';
+import { ContentItem, ProviderId, WatchOffer } from '../../models/types';
 import { providers } from '../../models/catalogue';
 import { colors } from '../styles/theme';
 import { styles } from '../styles/uiStyles';
@@ -105,6 +105,27 @@ export function ProviderBadge({ id, connected, compact = false }: { id: Provider
       <Text style={[styles.providerBadgeText, compact && styles.providerBadgeTextCompact]}>{provider.shortName}</Text>
       {connected && <Feather name="check" size={11} color={provider.foreground} />}
     </View>
+  );
+}
+
+export function WatchOfferButton({ offer, onPress }: { offer: WatchOffer; onPress: () => void }) {
+  const darkForeground = offer.platformId === 'apple';
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={`Abrir ${offer.platformName}, ${offer.accessLabel}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.watchOffer, pressed && styles.pressed]}
+    >
+      <View style={[styles.watchOfferMark, { backgroundColor: offer.color }]}>
+        <Text style={[styles.watchOfferMarkText, darkForeground && styles.watchOfferMarkTextDark]}>{offer.platformName.slice(0, 1)}</Text>
+      </View>
+      <View style={styles.watchOfferCopy}>
+        <Text style={styles.watchOfferName}>{offer.platformName}</Text>
+        <Text style={styles.watchOfferAccess}>{offer.accessLabel}</Text>
+      </View>
+      <Feather name="external-link" size={16} color={colors.lime} />
+    </Pressable>
   );
 }
 

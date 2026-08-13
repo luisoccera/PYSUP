@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Alert, Linking } from 'react-native';
 import { useFriendsController } from './useFriendsController';
 import { useRouletteController } from './useRouletteController';
+import { getContentAvailability } from '../models/availability';
 import { defaultPreferences, seedReviews } from '../models/defaults';
 import { catalogue, initialFriends, initialTopics } from '../models/catalogue';
 import { initialNotifications } from '../models/notifications';
@@ -65,6 +67,15 @@ export function useMainController({ initialName, country, initialConnected }: Ma
   const addFriend = (friend: Friend) => setFriends((current) => current.some((item) => item.id === friend.id) ? current : [...current, friend]);
   const friendsController = useFriendsController(friends, addFriend);
   const rouletteController = useRouletteController({ likedIds, savedIds, reviews, country: selectedCountry });
+  const selectedAvailability = selectedContent ? getContentAvailability(selectedContent, selectedCountry) : null;
+
+  const openExternalUrl = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('No pudimos abrir el enlace', 'Inténtalo de nuevo o revisa que el servicio esté disponible en tu dispositivo.');
+    }
+  };
 
   const openNotification = (notification: AppNotification) => {
     setNotificationsOpen(false);
@@ -119,6 +130,8 @@ export function useMainController({ initialName, country, initialConnected }: Ma
     friends,
     friendsController,
     rouletteController,
+    selectedAvailability,
+    openExternalUrl,
     notifications: initialNotifications,
     unreadNotificationIds,
     openNotification,

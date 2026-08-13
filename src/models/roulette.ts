@@ -1,11 +1,32 @@
 import { catalogue } from './catalogue';
-import { HiddenGemProfile, Review, RouletteRecommendation } from './types';
+import { getContentAvailability } from './availability';
+import {
+  HiddenGemProfile,
+  Review,
+  RouletteFormat,
+  RouletteMood,
+  RouletteRecommendation,
+} from './types';
+
+export const rouletteMoodOptions: { id: RouletteMood; label: string; icon: 'sun' | 'zap' | 'coffee' | 'moon' }[] = [
+  { id: 'uplifting', label: 'Quiero animarme', icon: 'sun' },
+  { id: 'intense', label: 'Algo intenso', icon: 'zap' },
+  { id: 'calm', label: 'Algo tranquilo', icon: 'coffee' },
+  { id: 'thoughtful', label: 'Quiero pensar', icon: 'moon' },
+];
+
+export const rouletteFormatOptions: { id: RouletteFormat; label: string }[] = [
+  { id: 'any', label: 'Me da igual' },
+  { id: 'movie', label: 'Película' },
+  { id: 'series', label: 'Serie' },
+];
 
 const hiddenGemProfiles: HiddenGemProfile[] = [
   {
     contentId: 'signal-noir',
     obscurity: 91,
     exposure: 14,
+    moods: ['intense', 'thoughtful'],
     whyForgotten: 'Tuvo una salida pequeña y nunca entró en las listas de tendencia.',
     editorialSignal: 'Muy valorada por quienes terminan thrillers de ciencia ficción pausados.',
   },
@@ -13,6 +34,7 @@ const hiddenGemProfiles: HiddenGemProfile[] = [
     contentId: 'after-the-rain',
     obscurity: 88,
     exposure: 19,
+    moods: ['calm', 'thoughtful'],
     whyForgotten: 'Quedó escondida entre estrenos de mayor presupuesto a pesar de su alta finalización.',
     editorialSignal: 'Conecta especialmente con quienes prefieren dramas íntimos y temporadas cerradas.',
   },
@@ -20,6 +42,7 @@ const hiddenGemProfiles: HiddenGemProfile[] = [
     contentId: 'orbit-9',
     obscurity: 82,
     exposure: 26,
+    moods: ['intense', 'thoughtful'],
     whyForgotten: 'Su estreno fue discreto y la conversación creció semanas después.',
     editorialSignal: 'Tiene una comunidad pequeña, pero reseñas consistentemente detalladas.',
   },
@@ -27,6 +50,7 @@ const hiddenGemProfiles: HiddenGemProfile[] = [
     contentId: 'paper-gods',
     obscurity: 94,
     exposure: 9,
+    moods: ['uplifting', 'intense'],
     whyForgotten: 'No apareció en portada fuera de su semana de estreno.',
     editorialSignal: 'Destaca entre usuarios que combinan fantasía, misterio y protagonistas ingeniosos.',
   },
@@ -34,6 +58,7 @@ const hiddenGemProfiles: HiddenGemProfile[] = [
     contentId: 'the-last-lantern',
     obscurity: 90,
     exposure: 12,
+    moods: ['calm', 'thoughtful'],
     whyForgotten: 'La recomendación automática la desplazó por títulos con más reproducciones iniciales.',
     editorialSignal: 'Mantiene mejor valoración entre quienes disfrutan historias contemplativas.',
   },
@@ -44,6 +69,8 @@ type RouletteInput = {
   savedIds: string[];
   reviews: Review[];
   country: string;
+  mood?: RouletteMood | null;
+  format?: RouletteFormat;
 };
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -74,7 +101,13 @@ export function buildHiddenGemRecommendations(input: RouletteInput): RouletteRec
   input.savedIds.forEach((id) => addGenreSignals(genreWeights, id, 2));
   input.reviews.forEach((review) => addGenreSignals(genreWeights, review.contentId, review.rating >= 4 ? review.rating : -2));
 
-  const available = catalogue.filter((item) => item.countries.includes(input.country));
+  const available = catalogue.filter((item) => {
+    if (!item.countries.includes(input.country)) return false;
+    if (input.format === 'movie' && item.type !== 'Película') return false;
+    if (input.format === 'series' && item.type === 'Película') return false;
+    const profile = hiddenGemProfiles.find((candidate) => candidate.contentId === item.id);
+    return !input.mood || profile?.moods.includes(input.mood);
+  });
   const unseen = available.filter((item) => !reviewedIds.has(item.id));
   const pool = unseen.length >= 2 ? unseen : available;
 
@@ -91,6 +124,7 @@ export function buildHiddenGemRecommendations(input: RouletteInput): RouletteRec
       whyForgotten: profile.whyForgotten,
       editorialSignal: profile.editorialSignal,
       tasteSignals: content.genres.filter((genre) => tasteSignals.includes(genre)).slice(0, 2),
+      availability: getContentAvailability(content, input.country),
     };
   }).sort((left, right) => right.score - left.score);
 }

@@ -44,7 +44,8 @@ El código de aplicación vive en tres capas explícitas dentro de `src/`:
 - Inicio de sesión, registro, recuperación y validación local de formulario.
 - Onboarding de país, plataformas e intereses.
 - Mazo de recomendaciones interactivo: pasar, guardar o marcar que gusta.
-- Ruleta de joyas ocultas que prioriza afinidad personal, penaliza exposición viral y explica por qué cada título quedó fuera del radar.
+- Ruleta a ciegas: pregunta el estado de ánimo y el formato de manera opcional, no revela pistas antes del giro y después permite previsualizar tráiler o sinopsis.
+- Accesos oficiales por país para abrir cada título en servicios de suscripción, renta o compra; el modelo está preparado para sumar plataformas progresivamente.
 - Identificación demostrativa desde enlaces públicos de TikTok, Instagram, X y YouTube, o mediante un fragmento de video subido.
 - Motivos explicables para cada recomendación y disponibilidad por región.
 - Fichas de contenido con calificación y publicación de reseñas.

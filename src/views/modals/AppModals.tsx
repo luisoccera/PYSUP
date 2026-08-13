@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { ImageBackground, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppNotification, ContentItem, Review } from '../../models/types';
-import { Button, IconButton, Pill, ProviderBadge } from '../components/ui';
+import { AppNotification, ContentAvailability, ContentItem, Review } from '../../models/types';
+import { Button, IconButton, Pill, WatchOfferButton } from '../components/ui';
 import { Stars } from '../screens/ProfileView';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
 
-export function ContentModal({ item, visible, onClose, onReview, isLiked, isSaved, onLike, onSave }: { item: ContentItem | null; visible: boolean; onClose: () => void; onReview: (review: Review) => void; isLiked: boolean; isSaved: boolean; onLike: () => void; onSave: () => void }) {
+export function ContentModal({ item, visible, onClose, onReview, isLiked, isSaved, onLike, onSave, availability, onOpenUrl }: { item: ContentItem | null; visible: boolean; onClose: () => void; onReview: (review: Review) => void; isLiked: boolean; isSaved: boolean; onLike: () => void; onSave: () => void; availability: ContentAvailability | null; onOpenUrl: (url: string) => void }) {
   const [rating, setRating] = useState(0);
   const [text, setText] = useState('');
   const [reviewing, setReviewing] = useState(false);
@@ -33,7 +33,13 @@ export function ContentModal({ item, visible, onClose, onReview, isLiked, isSave
             <View style={styles.genreRow}>{item.genres.map((genre) => <Pill key={genre} label={genre} />)}</View>
             <Text style={styles.detailSynopsis}>{item.synopsis}</Text>
             <View style={styles.reasonCard}><View style={styles.reasonIcon}><Feather name="zap" size={18} color={colors.ink} /></View><View style={styles.reasonCopy}><Text style={styles.reasonTitle}>Por qué te la recomendamos</Text><Text style={styles.reasonText}>{item.reason}</Text></View></View>
-            <View style={styles.availableRow}><Text style={styles.availableLabel}>Disponible en</Text>{item.providers.map((id) => <ProviderBadge key={id} id={id} />)}</View>
+            {availability && <View style={styles.detailAvailability}>
+              <View style={styles.watchNowHeader}><View><Text style={styles.watchNowTitle}>Dónde verla</Text><Text style={styles.watchNowSubtitle}>Abre el servicio oficial para reproducir, rentar o comprar.</Text></View><Button label="Tráiler" icon="play-circle" compact variant="ghost" onPress={() => onOpenUrl(availability.trailerUrl)} /></View>
+              {availability.offers.length > 0
+                ? <View style={styles.watchOfferGrid}>{availability.offers.map((offer) => <WatchOfferButton key={`${offer.platformId}-${offer.access}`} offer={offer} onPress={() => onOpenUrl(offer.url)} />)}</View>
+                : <Text style={styles.noAvailabilityText}>Este título no aparece disponible en el país configurado.</Text>}
+              <Text style={styles.availabilityNote}>Confirma el precio y la disponibilidad en tu país antes de continuar.</Text>
+            </View>}
             <View style={styles.detailActions}><Button label={isLiked ? 'En favoritas' : 'Me gusta'} icon="heart" onPress={onLike} style={styles.detailAction} /><Button label={isSaved ? 'Guardada' : 'Guardar'} icon="bookmark" variant="secondary" onPress={onSave} style={styles.detailAction} /></View>
             <View style={styles.reviewComposer}>
               <View style={styles.reviewComposerTop}><View><Text style={styles.reviewComposerTitle}>¿Ya la viste?</Text><Text style={styles.reviewComposerSub}>Tu opinión mejora tus recomendaciones.</Text></View>{!reviewing && <Button label="Escribir reseña" icon="edit-3" compact variant="ghost" onPress={() => setReviewing(true)} />}</View>

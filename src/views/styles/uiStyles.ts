@@ -62,6 +62,20 @@ export const styles = StyleSheet.create({
 
   providerBadgeTextCompact: { fontSize: 10 },
 
+  watchOffer: { flexGrow: 1, minWidth: 152, minHeight: 58, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.panelRaised, paddingHorizontal: 11, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 10 },
+
+  watchOfferMark: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+
+  watchOfferMarkText: { color: colors.white, fontSize: 15, fontWeight: '900' },
+
+  watchOfferMarkTextDark: { color: colors.ink },
+
+  watchOfferCopy: { flex: 1 },
+
+  watchOfferName: { color: colors.text, fontSize: 12, fontWeight: '900' },
+
+  watchOfferAccess: { color: colors.textMuted, fontSize: 9, fontWeight: '700', marginTop: 2 },
+
   sectionTitleRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: spacing.md },
 
   sectionTitleCopy: { flex: 1 },

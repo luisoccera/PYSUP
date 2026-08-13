@@ -42,6 +42,8 @@ export function MainView({ controller, onLogout }: MainViewProps) {
     createTopic,
     friendsController,
     rouletteController,
+    selectedAvailability,
+    openExternalUrl,
     selectedContent,
     setSelectedContent,
     notificationsOpen,
@@ -95,7 +97,13 @@ export function MainView({ controller, onLogout }: MainViewProps) {
             />
           )}
           {activeTab === 'roulette' && (
-            <RouletteScreen controller={rouletteController} likedIds={likedIds} onLike={like} onOpen={setSelectedContent} />
+            <RouletteScreen
+              controller={rouletteController}
+              savedIds={savedIds}
+              onSave={save}
+              onOpen={setSelectedContent}
+              onOpenUrl={openExternalUrl}
+            />
           )}
           {activeTab === 'forum' && <ForumScreen topics={topics} onCreate={createTopic} focusedTopicId={focusedForumTopicId} onFocusHandled={clearFocusedForumTopic} />}
           {activeTab === 'friends' && <FriendsScreen controller={friendsController} />}
@@ -135,6 +143,8 @@ export function MainView({ controller, onLogout }: MainViewProps) {
         isSaved={!!selectedContent && savedIds.includes(selectedContent.id)}
         onLike={toggleSelectedLike}
         onSave={toggleSelectedSave}
+        availability={selectedAvailability}
+        onOpenUrl={openExternalUrl}
       />
       <NotificationsModal
         visible={notificationsOpen}

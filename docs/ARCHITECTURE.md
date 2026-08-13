@@ -8,6 +8,7 @@ App.tsx
     ├── models
     │   ├── types.ts
     │   ├── catalogue.ts
+    │   ├── availability.ts
     │   ├── notifications.ts
     │   ├── roulette.ts
     │   ├── defaults.ts
@@ -71,9 +72,15 @@ La regla de dependencia es: el modelo permanece independiente, el controlador co
 
 ### Ruleta de joyas ocultas
 
-`models/roulette.ts` construye el perfil de gusto con calificaciones, favoritos y guardados. La clasificación combina afinidad y nivel de descubrimiento, y resta puntos por exposición excesiva. Los títulos ya reseñados se excluyen cuando quedan suficientes alternativas regionales.
+`models/roulette.ts` construye el perfil de gusto con calificaciones, favoritos y guardados. La clasificación combina afinidad y nivel de descubrimiento, resta puntos por exposición excesiva y filtra por estado de ánimo y formato cuando el usuario decide responder. Los títulos ya reseñados se excluyen cuando quedan suficientes alternativas regionales.
 
-`useRouletteController.ts` conserva el resultado y selecciona el siguiente candidato. `RouletteView.tsx` se limita a animar la rueda, presentar las razones y enviar las acciones del usuario al controlador principal.
+`useRouletteController.ts` mantiene los filtros opcionales y no expone resultado hasta terminar un giro. `RouletteView.tsx` presenta una rueda sin títulos, portadas, géneros ni otras pistas; tras la revelación muestra tráiler, sinopsis y decisiones para aceptar, guardar o solicitar otra opción.
+
+## Disponibilidad y salida a plataformas
+
+`models/availability.ts` normaliza cada oferta por plataforma, país y modalidad (`subscription`, `rent` o `purchase`). En este MVP los botones abren la búsqueda oficial del servicio; una integración de producción sustituirá esas URL por identificadores profundos del título y disponibilidad vigente obtenida desde proveedores o un agregador autorizado.
+
+El controlador principal ejecuta la apertura externa y maneja fallos. Las vistas reciben las ofertas resueltas y nunca construyen URL de plataformas, conservando la separación MVC y permitiendo agregar servicios sin reescribir las pantallas.
 
 ## Navegación desde notificaciones
 

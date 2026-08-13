@@ -97,8 +97,31 @@ export type HiddenGemProfile = {
   contentId: string;
   obscurity: number;
   exposure: number;
+  moods: RouletteMood[];
   whyForgotten: string;
   editorialSignal: string;
+};
+
+export type RouletteMood = 'uplifting' | 'intense' | 'calm' | 'thoughtful';
+
+export type RouletteFormat = 'any' | 'movie' | 'series';
+
+export type WatchAccess = 'subscription' | 'rent' | 'purchase';
+
+export type WatchPlatformId = ProviderId | 'apple';
+
+export type WatchOffer = {
+  platformId: WatchPlatformId;
+  platformName: string;
+  access: WatchAccess;
+  accessLabel: string;
+  color: string;
+  url: string;
+};
+
+export type ContentAvailability = {
+  trailerUrl: string;
+  offers: WatchOffer[];
 };
 
 export type RouletteRecommendation = {
@@ -109,6 +132,7 @@ export type RouletteRecommendation = {
   whyForgotten: string;
   editorialSignal: string;
   tasteSignals: string[];
+  availability: ContentAvailability;
 };
 
 export type PreferenceKey =
