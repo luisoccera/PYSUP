@@ -64,6 +64,7 @@ function Field({ label, value, onChangeText, placeholder, icon, secure, error, k
 export function AuthView({ controller }: { controller: AuthControllerState }) {
   const { width } = useWindowDimensions();
   const wide = width >= 900;
+  const [legalOpen, setLegalOpen] = useState<'terms' | 'privacy' | null>(null);
   const {
     mode,
     switchMode,
@@ -81,7 +82,11 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
     toggleAcceptedTerms,
     submitted,
     errors,
+    loading,
+    error,
+    info,
     submit,
+    canEnterDemo,
     enterDemo,
     continueWithProvider,
     recoveryOpen,
@@ -148,18 +153,21 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
               <>
                 <Pressable onPress={toggleAcceptedTerms} style={authStyles.checkRow}>
                   <View style={[authStyles.checkbox, accepted && authStyles.checkboxActive]}>{accepted && <Feather name="check" size={13} color={colors.ink} />}</View>
-                  <Text style={authStyles.terms}>Acepto los <Text style={authStyles.link}>Términos</Text> y el <Text style={authStyles.link}>Aviso de privacidad</Text>.</Text>
+                  <Text style={authStyles.terms}>Acepto las condiciones legales de PYSUP.</Text>
                 </Pressable>
+                <View style={authStyles.formOptions}><Pressable onPress={() => setLegalOpen('terms')}><Text style={authStyles.link}>Ver Términos</Text></Pressable><Pressable onPress={() => setLegalOpen('privacy')}><Text style={authStyles.link}>Ver Aviso de privacidad</Text></Pressable></View>
                 {submitted && errors.accepted && <Text style={authStyles.errorText}>{errors.accepted}</Text>}
               </>
             )}
 
-            <Button label={mode === 'login' ? 'Entrar a PYSUP' : 'Crear mi cuenta'} onPress={submit} icon="arrow-right" style={authStyles.submit} />
-            {mode === 'login' && <Button label="Entrar al demo sin cuenta" onPress={enterDemo} icon="play-circle" variant="ghost" style={authStyles.demoAccess} />}
+            {!!error && <Text accessibilityRole="alert" style={authStyles.errorText}>{error}</Text>}
+            {!!info && <Text accessibilityRole="alert" style={[authStyles.secureText, { color: colors.success }]}>{info}</Text>}
+            <Button label={loading ? 'Procesando…' : mode === 'login' ? 'Entrar a PYSUP' : 'Crear mi cuenta'} onPress={submit} icon="arrow-right" disabled={loading} style={authStyles.submit} />
+            {mode === 'login' && canEnterDemo && <Button label="Entrar al demo local" onPress={enterDemo} icon="play-circle" variant="ghost" disabled={loading} style={authStyles.demoAccess} />}
             <View style={authStyles.divider}><View style={authStyles.dividerLine} /><Text style={authStyles.dividerText}>o continúa con</Text><View style={authStyles.dividerLine} /></View>
             <View style={authStyles.socialRow}>
-              <Button label="Google" onPress={continueWithProvider} icon="chrome" variant="secondary" style={authStyles.socialButton} />
-              <Button label="Apple" onPress={continueWithProvider} icon="smartphone" variant="secondary" style={authStyles.socialButton} />
+              <Button label="Google" onPress={() => continueWithProvider('google')} icon="chrome" variant="secondary" disabled={loading} style={authStyles.socialButton} />
+              <Button label="Apple" onPress={() => continueWithProvider('apple')} icon="smartphone" variant="secondary" disabled={loading} style={authStyles.socialButton} />
             </View>
             <View style={authStyles.secureRow}><Feather name="shield" size={14} color={colors.success} /><Text style={authStyles.secureText}>Tus credenciales de streaming nunca se guardan en PYSUP.</Text></View>
           </View>
@@ -173,10 +181,23 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
             <Text style={authStyles.recoveryTitle}>{recoverySent ? 'Revisa tu correo' : 'Recupera tu acceso'}</Text>
             <Text style={authStyles.recoveryText}>{recoverySent ? `Enviamos instrucciones a ${email || 'tu correo'}.` : 'Escribe tu correo y te enviaremos un enlace seguro para restablecer tu contraseña.'}</Text>
             {!recoverySent && <Field label="Correo" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" icon="mail" keyboardType="email-address" />}
-            <Button label={recoverySent ? 'Entendido' : 'Enviar enlace'} onPress={() => recoverySent ? closeRecovery() : sendRecovery()} />
+            {!!error && <Text accessibilityRole="alert" style={authStyles.errorText}>{error}</Text>}
+            <Button label={loading ? 'Enviando…' : recoverySent ? 'Entendido' : 'Enviar enlace'} disabled={loading} onPress={() => recoverySent ? closeRecovery() : sendRecovery()} />
             {!recoverySent && <Button label="Cancelar" onPress={closeRecovery} variant="ghost" />}
           </View>
         </View>
+      </Modal>
+
+      <Modal transparent visible={legalOpen !== null} animationType="fade" onRequestClose={() => setLegalOpen(null)}>
+        <View style={authStyles.modalBackdrop}><View style={authStyles.recoveryCard}>
+          <Text style={authStyles.recoveryTitle}>{legalOpen === 'terms' ? 'Términos de uso' : 'Aviso de privacidad'}</Text>
+          <ScrollView style={{ maxHeight: 360 }}>
+            <Text style={authStyles.recoveryText}>{legalOpen === 'terms'
+              ? 'PYSUP no transmite ni concede acceso a contenido audiovisual. Cada persona usa legalmente su propia plataforma. Sólo puedes analizar enlaces públicos o archivos autorizados; no subas obras completas, contenido ilícito ni material destinado a evadir protecciones. La disponibilidad y precios deben confirmarse con el proveedor oficial.'
+              : 'PYSUP guarda perfil, país, preferencias e interacciones necesarias para operar. Mensajes y salas sólo son visibles para participantes. Los clips son privados, usan enlaces temporales y se eliminan al terminar o vencer la purga. Puedes exportar tus datos o eliminar tu cuenta desde Configuración. PYSUP no solicita contraseñas de streaming ni usa clips para entrenar modelos.'}</Text>
+          </ScrollView>
+          <Button label="Cerrar" onPress={() => setLegalOpen(null)} />
+        </View></View>
       </Modal>
     </LinearGradient>
   );

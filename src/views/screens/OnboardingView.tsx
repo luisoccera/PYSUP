@@ -22,6 +22,8 @@ export function OnboardingView({ name, controller }: { name: string; controller:
     skip,
     previous,
     buttonDisabled,
+    submitting,
+    error,
   } = controller;
 
   return (
@@ -51,7 +53,7 @@ export function OnboardingView({ name, controller }: { name: string; controller:
               <View style={onboardingStyles.stepIcon}><Feather name="link-2" size={30} color={colors.ink} /></View>
               <Text style={onboardingStyles.kicker}>PASO 2 DE 3</Text>
               <Text style={onboardingStyles.title}>Conecta lo que ya ves</Text>
-              <Text style={onboardingStyles.subtitle}>Con autorización oficial, PYSUP podrá usar tu historial para afinar recomendaciones. En este MVP la conexión es demostrativa.</Text>
+              <Text style={onboardingStyles.subtitle}>Elige las plataformas que tienes. Por ahora se guardan como selección manual; PYSUP nunca solicitará sus contraseñas ni afirmará que existe una conexión OAuth.</Text>
               <View style={onboardingStyles.providerList}>
                 {providers.map((provider) => {
                   const isConnected = connected.includes(provider.id);
@@ -59,8 +61,8 @@ export function OnboardingView({ name, controller }: { name: string; controller:
                   return (
                     <View key={provider.id} style={[onboardingStyles.providerCard, isConnected && onboardingStyles.providerCardActive]}>
                       <ProviderBadge id={provider.id} />
-                      <View style={onboardingStyles.providerCopy}><Text style={onboardingStyles.providerName}>{provider.name}</Text><Text style={onboardingStyles.providerStatus}>{isConnected ? 'Cuenta enlazada' : isConnecting ? 'Autorizando…' : 'Usar actividad y lista'}</Text></View>
-                      <Button label={isConnected ? 'Enlazada' : isConnecting ? 'Espera' : 'Conectar'} icon={isConnected ? 'check' : 'link'} variant={isConnected ? 'ghost' : 'secondary'} compact disabled={isConnecting} onPress={() => toggleProvider(provider.id)} />
+                      <View style={onboardingStyles.providerCopy}><Text style={onboardingStyles.providerName}>{provider.name}</Text><Text style={onboardingStyles.providerStatus}>{isConnected ? 'Selección manual activa' : 'No seleccionada'}</Text></View>
+                      <Button label={isConnected ? 'Elegida' : 'Elegir'} icon={isConnected ? 'check' : 'plus'} variant={isConnected ? 'ghost' : 'secondary'} compact disabled={isConnecting} onPress={() => toggleProvider(provider.id)} />
                     </View>
                   );
                 })}
@@ -83,8 +85,9 @@ export function OnboardingView({ name, controller }: { name: string; controller:
           )}
         </View>
         <View style={onboardingStyles.footer}>
+          {!!error && <Text accessibilityRole="alert" style={onboardingStyles.subtitle}>{error}</Text>}
           {step > 0 && <Button label="Atrás" icon="arrow-left" variant="ghost" onPress={previous} style={onboardingStyles.backButton} />}
-          <Button label={step === 2 ? 'Empezar a descubrir' : 'Continuar'} icon="arrow-right" disabled={buttonDisabled} onPress={next} style={onboardingStyles.nextButton} />
+          <Button label={submitting ? 'Guardando…' : step === 2 ? 'Empezar a descubrir' : 'Continuar'} icon="arrow-right" disabled={buttonDisabled} onPress={next} style={onboardingStyles.nextButton} />
         </View>
       </ScrollView>
     </LinearGradient>

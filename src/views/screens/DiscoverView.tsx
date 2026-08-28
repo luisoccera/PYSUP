@@ -2,29 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ClipFinderController } from '../../controllers/ClipFinderController';
-import { catalogue } from '../../models/catalogue';
 import { ContentItem } from '../../models/types';
 import { Pill, SwipeDeck } from '../components/ui';
 import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
 
-export function DiscoverScreen({ onOpen, liked, saved, onLiked, onSaved }: { onOpen: (item: ContentItem) => void; liked: string[]; saved: string[]; onLiked: (id: string) => void; onSaved: (id: string) => void }) {
+export function DiscoverScreen({ country, wifiOnly, items, onOpen, liked, saved, onAction }: { country: string; wifiOnly: boolean; items: ContentItem[]; onOpen: (item: ContentItem) => void; liked: string[]; saved: string[]; onAction: (action: 'pass' | 'like' | 'save', id: string) => void }) {
   const [mode, setMode] = useState<'recommendations' | 'identify'>('recommendations');
   const [filter, setFilter] = useState('Todo');
   const [index, setIndex] = useState(0);
   const [notice, setNotice] = useState('');
   const filters = ['Todo', 'Películas', 'Series', 'Anime'];
-  const filtered = catalogue.filter((item) => filter === 'Todo' || (filter === 'Películas' && item.type === 'Película') || (filter === 'Series' && item.type === 'Serie') || (filter === 'Anime' && item.type === 'Anime'));
+  const filtered = items.filter((item) => filter === 'Todo' || (filter === 'Películas' && item.type === 'Película') || (filter === 'Series' && item.type === 'Serie') || (filter === 'Anime' && item.type === 'Anime'));
   const item = filtered[index % filtered.length];
   const nextItem = filtered[(index + 1) % filtered.length];
 
   useEffect(() => setIndex(0), [filter]);
 
   const handleAction = (action: 'pass' | 'like' | 'save', current: ContentItem) => {
-    if (action === 'like') { onLiked(current.id); setNotice(liked.includes(current.id) ? 'Ya estaba en tus favoritas' : 'Añadida a tus favoritas'); }
-    else if (action === 'save') { onSaved(current.id); setNotice(saved.includes(current.id) ? 'Ya estaba guardada' : 'Guardada para después'); }
+    if (action === 'like') setNotice(liked.includes(current.id) ? 'Quitada de tus favoritas' : 'Añadida a tus favoritas');
+    else if (action === 'save') setNotice(saved.includes(current.id) ? 'Quitada de guardadas' : 'Guardada para después');
     else setNotice('Entendido, verás menos títulos así');
+    onAction(action, current.id);
     setIndex((value) => value + 1);
     setTimeout(() => setNotice(''), 1800);
   };
@@ -42,16 +42,16 @@ export function DiscoverScreen({ onOpen, liked, saved, onLiked, onSaved }: { onO
       {mode === 'recommendations' ? (
         <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>{filters.map((value) => <Pill key={value} label={value} active={filter === value} onPress={() => setFilter(value)} />)}</ScrollView>
-          <View style={styles.deckArea}>
+          {item ? <View style={styles.deckArea}>
             <SwipeDeck key={`${filter}-${item.id}`} item={item} nextItem={nextItem} onAction={handleAction} onOpen={onOpen} />
-          </View>
+          </View> : <View style={styles.emptyState}><Feather name="compass" size={30} color={colors.textDim} /><Text style={styles.emptyTitle}>No hay más recomendaciones</Text><Text style={styles.emptyText}>Cambia el filtro o vuelve cuando el catálogo de tu país se actualice.</Text></View>}
           <View style={styles.gestureLegend}>
             <View style={styles.legendItem}><Feather name="arrow-left" size={14} color={colors.coral} /><Text style={styles.legendText}>Pasar</Text></View>
             <View style={styles.legendItem}><Feather name="arrow-up" size={14} color={colors.blue} /><Text style={styles.legendText}>Guardar</Text></View>
             <View style={styles.legendItem}><Feather name="arrow-right" size={14} color={colors.lime} /><Text style={styles.legendText}>Me gusta</Text></View>
           </View>
         </>
-      ) : <ClipFinderController onOpen={onOpen} />}
+      ) : <ClipFinderController country={country} wifiOnly={wifiOnly} onOpen={onOpen} />}
       {!!notice && <View style={styles.toast}><Feather name="check-circle" size={17} color={colors.lime} /><Text style={styles.toastText}>{notice}</Text></View>}
     </ScrollView>
   );

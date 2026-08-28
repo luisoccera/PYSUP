@@ -1,70 +1,68 @@
 # PYSUP
 
-PYSUP es una aplicación multiplataforma para descubrir, comentar y compartir
-películas y series con recomendaciones personalizadas.
+PYSUP es una aplicación Expo/React Native/React Native Web para descubrir películas, series y anime, conversar con amigos y coordinar salas de reproducción sin transmitir contenido protegido.
 
-## Propiedad y autoría
+El código propio es nuevo para este proyecto y permanece bajo la licencia propietaria incluida en `LICENSE`. Las dependencias de npm conservan sus propias licencias.
 
-El código de aplicación dentro de `src/`, `App.tsx` e `index.ts`, junto con los
-recursos visuales de PYSUP, fue creado específicamente para este proyecto. No se
-incluyen fragmentos de código copiados ni atribuciones de otros proyectos en el
-código fuente propio.
+## Estado
 
-PYSUP es software propietario y se distribuye con todos los derechos
-reservados. Las bibliotecas instaladas como dependencias permanecen separadas y
-conservan las licencias de sus autores.
+La aplicación ya contiene la integración de cliente, esquema PostgreSQL, RLS, Storage, Realtime, Edge Functions y pruebas necesarias para operar con Supabase. No concede acceso simulado con credenciales arbitrarias. El modo demo local existe sólo cuando `EXPO_PUBLIC_DEMO_MODE=true` y está desactivado por defecto.
 
-PYSUP es un MVP multiplataforma para descubrir películas, series y anime con una experiencia de deslizamiento, recomendaciones filtradas por país, reseñas, comunidad, amigos y salas sincronizadas.
+Para funcionar entre dispositivos todavía requiere que el propietario cree y configure el proyecto externo de Supabase, aplique las migraciones y proporcione las variables públicas. OAuth, push, catálogo comercial y análisis pesado de clips requieren además las credenciales descritas en [README_SETUP.md](README_SETUP.md).
+
+## Arquitectura
+
+```text
+App.tsx                    composición y Error Boundary
+src/models/               modelos de dominio y datos del demo explícito
+src/controllers/          estado y coordinación de flujos
+src/views/                presentación multiplataforma
+src/services/             repositorios tipados; único acceso del cliente a Supabase
+src/repositories/         punto de entrada estable de repositorios por dominio
+src/hooks/                conectividad y estado compartido de plataforma
+src/config/               variables públicas y guardas de configuración
+src/utils/                validación, sanitización y errores
+supabase/migrations/      esquema, funciones, índices, triggers, RLS y seed
+supabase/functions/       clips, exportación, baja, push, catálogo y limpieza
+tests/                    contratos, validación y E2E web
+```
+
+Las vistas no consultan tablas. Los controladores usan servicios/repositorios, y las operaciones administrativas sólo existen dentro de Edge Functions con secretos del servidor.
 
 ## Ejecutar
 
-En Windows también puedes hacer doble clic en `INICIAR-PYSUP.cmd`; instalará las dependencias si faltan, levantará Expo y abrirá la vista previa.
-
-En la pantalla inicial, usa **Entrar al demo sin cuenta** para revisar todos los apartados inmediatamente.
-
 ```bash
 npm install
+copy .env.example .env
 npm run web
 ```
 
-También puede iniciarse con `npm run android` o `npm run ios` dentro de un entorno compatible con Expo.
+Android e iOS:
 
-## Arquitectura MVC
+```bash
+npm run android
+npm run ios
+```
 
-El código de aplicación vive en tres capas explícitas dentro de `src/`:
+Verificación completa:
 
-- `models/`: entidades, datos, valores iniciales y persistencia.
-- `controllers/`: estado, validaciones, acciones y coordinación de flujos.
-- `views/`: pantallas, componentes, navegación, modales y estilos.
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run export:web
+npm run test:e2e:web
+```
 
-`App.tsx` es únicamente el punto de composición. Consulta [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para ver las reglas de dependencia y el mapa de archivos.
+## Seguridad y límites
 
-## Qué incluye este MVP
+- La sesión usa SecureStore fragmentado en Android/iOS y almacenamiento del navegador en web.
+- Los archivos de perfil, avatar, portada y clips están en buckets privados y se consumen mediante URLs firmadas.
+- RLS protege perfiles, preferencias, interacciones, mensajes, salas, notificaciones y trabajos de clips.
+- Netflix, Max, Disney+, Crunchyroll y Prime Video se guardan como selección manual mientras no exista una autorización oficial. PYSUP nunca solicita sus contraseñas.
+- La disponibilidad del seed es demostrativa y caduca. Producción debe configurar el adaptador comercial de catálogo.
+- Las salas sólo sincronizan presencia, chat y eventos de control con reloj del servidor. Cada persona abre legalmente el título en su propia plataforma.
+- Las salas se recuperan al reconectar, admiten código o enlace `pysup://room/CODIGO` y reservan el control de reproducción al anfitrión o moderador.
+- El procesamiento de clips se delega a un worker HTTP protegido. Sin worker configurado se muestra un error recuperable y no se inventan candidatos.
 
-- Inicio de sesión, registro, recuperación y validación local de formulario.
-- Onboarding de país, plataformas e intereses.
-- Mazo de recomendaciones interactivo: pasar, guardar o marcar que gusta.
-- Ruleta a ciegas: pregunta el estado de ánimo y el formato de manera opcional, no revela pistas antes del giro y después permite previsualizar tráiler o sinopsis.
-- Accesos oficiales por país para abrir cada título en servicios de suscripción, renta o compra; el modelo está preparado para sumar plataformas progresivamente.
-- Identificación demostrativa desde enlaces públicos de TikTok, Instagram, X y YouTube, o mediante un fragmento de video subido.
-- Motivos explicables para cada recomendación y disponibilidad por región.
-- Fichas de contenido con calificación y publicación de reseñas.
-- Perfil con portada, avatar, biografía, estadísticas, reseñas y conexiones.
-- Foros de discusión y un flujo específico de “¿Qué película era?”.
-- Búsqueda, selección y alta demostrativa de amigos.
-- Mensajería directa independiente con cada amigo, incluidos los contactos recién agregados.
-- Sala privada con reproducción, pausa, avance, retroceso y chat grupal sincronizados.
-- Notificaciones accionables que abren directamente la sala, conversación, foro, reseña o recomendación correspondiente.
-- Diseño adaptable para navegador, Android, iPhone y tablet.
-
-Los datos y la autenticación son locales para que el prototipo pueda probarse sin servidor. El estado de sesión se conserva en el dispositivo.
-
-La identificación de clips representa el flujo final pero usa un resultado de demostración. Para convertirla en una búsqueda real se necesita un servicio que extraiga fotogramas y audio, genere candidatos y consulte la disponibilidad regional en un proveedor de catálogo.
-
-## Límites importantes de las integraciones
-
-Netflix, Max, Disney+, Crunchyroll y Prime Video no ofrecen un acceso público uniforme al historial completo de cada usuario. Una versión de producción debe usar OAuth y APIs oficiales donde existan, acuerdos comerciales cuando sean necesarios, y permitir una alternativa de importación o selección manual. PYSUP nunca debe pedir ni guardar las contraseñas de esos servicios.
-
-Las salas en pareja no retransmiten contenido. Cada participante reproduce el título en su propia cuenta y PYSUP intercambia únicamente eventos de control, presencia y chat. La compatibilidad real dependerá de los mecanismos autorizados por cada proveedor.
-
-Consulta [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para la ruta de producción.
+Consulta [README_SETUP.md](README_SETUP.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/TERMS.md](docs/TERMS.md) y [docs/CLIP_ANALYSIS.md](docs/CLIP_ANALYSIS.md).

@@ -22,11 +22,12 @@ type RouletteScreenProps = {
   onSave: (id: string) => void;
   onOpen: (item: ContentItem) => void;
   onOpenUrl: (url: string) => void;
+  onOpenTrailer: (url: string) => void;
 };
 
 const blindNodes = ['?', 'P', '?', 'S', '?', 'Y', '?', 'U'];
 
-export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl }: RouletteScreenProps) {
+export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl, onOpenTrailer }: RouletteScreenProps) {
   const { width } = useWindowDimensions();
   const compact = width < 760;
   const wheelSize = Math.min(compact ? width - 52 : 390, 390);
@@ -39,7 +40,7 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
   useEffect(() => setShowSynopsis(false), [result?.content.id]);
 
   const spin = () => {
-    if (spinning || !controller.recommendations.length) return;
+    if (spinning || controller.loading || !controller.recommendations.length) return;
     setSpinning(true);
     setShowSynopsis(false);
     rotation.setValue(0);
@@ -49,7 +50,7 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
     });
   };
 
-  const noMatches = controller.recommendations.length === 0;
+  const noMatches = !controller.loading && controller.recommendations.length === 0;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.rouletteContent} showsVerticalScrollIndicator={false}>
@@ -85,6 +86,8 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
         </View>
       </View>
 
+      {!!controller.error && <View style={styles.rouletteNoMatch}><Feather name="alert-circle" size={24} color={colors.coral} /><Text style={styles.emptyText}>{controller.error}</Text></View>}
+
       {noMatches ? (
         <View style={styles.rouletteNoMatch}>
           <Feather name="search" size={26} color={colors.blue} />
@@ -110,7 +113,7 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
               </Animated.View>
               <View style={styles.wheelHub}><Feather name="help-circle" size={30} color={colors.lime} /><Text style={styles.wheelHubText}>SIN PISTAS</Text></View>
             </View>
-            <Button label={spinning ? 'Eligiendo para ti…' : result ? 'Dame otra opción' : 'Girar y revelar'} icon={result ? 'refresh-cw' : 'play'} disabled={spinning} onPress={spin} style={styles.spinButton} />
+            <Button label={spinning || controller.loading ? 'Eligiendo para ti…' : result ? 'Dame otra opción' : 'Girar y revelar'} icon={result ? 'refresh-cw' : 'play'} disabled={spinning || controller.loading} onPress={spin} style={styles.spinButton} />
             <View style={styles.blindPromise}><Feather name="lock" size={14} color={colors.textDim} /><Text style={styles.blindPromiseText}>La selección permanece oculta hasta que termine la animación.</Text></View>
           </View>
 
@@ -131,13 +134,13 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
               <ImageBackground source={result.content.image} style={styles.rouletteResultImage} imageStyle={styles.rouletteResultImageRadius}>
                 <LinearGradient colors={['rgba(7,10,18,0.08)', 'rgba(7,10,18,0.96)']} style={styles.rouletteResultGradient}>
                   <View style={styles.hiddenGemPill}><Feather name="unlock" size={13} color={colors.ink} /><Text style={styles.hiddenGemPillText}>REVELADA</Text></View>
-                  <View><Text style={styles.rouletteMatch}>{result.affinity}% AFINIDAD</Text><Text style={styles.rouletteResultTitle}>{result.content.title}</Text><Text style={styles.rouletteResultSubtitle}>{result.content.subtitle}</Text></View>
+                  <View>{result.affinity > 0 && <Text style={styles.rouletteMatch}>{result.affinity}% AFINIDAD</Text>}<Text style={styles.rouletteResultTitle}>{result.content.title}</Text><Text style={styles.rouletteResultSubtitle}>{result.content.subtitle}</Text></View>
                 </LinearGradient>
               </ImageBackground>
               <View style={styles.rouletteResultBody}>
                 <View style={styles.rouletteMeta}><Text style={styles.rouletteMetaText}>{result.content.type}</Text><Text style={styles.rouletteMetaText}>{result.content.year}</Text><Text style={styles.rouletteMetaText}>{result.content.duration}</Text>{result.content.providers.map((provider) => <ProviderBadge key={provider} id={provider} compact />)}</View>
                 <View style={styles.previewActions}>
-                  <Button label="Previsualizar tráiler" icon="play-circle" onPress={() => onOpenUrl(result.availability.trailerUrl)} style={styles.previewAction} />
+                  <Button label="Previsualizar tráiler" icon="play-circle" onPress={() => onOpenTrailer(result.availability.trailerUrl)} style={styles.previewAction} />
                   <Button label={showSynopsis ? 'Ocultar sinopsis' : 'Leer sinopsis'} icon="align-left" variant="secondary" onPress={() => setShowSynopsis((current) => !current)} style={styles.previewAction} />
                 </View>
                 {showSynopsis && <View style={styles.rouletteSynopsis}><Text style={styles.rouletteSynopsisLabel}>SINOPSIS SIN SPOILERS</Text><Text style={styles.rouletteSynopsisText}>{result.content.synopsis}</Text></View>}
@@ -148,10 +151,11 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
                 <View style={styles.watchOfferGrid}>
                   {result.availability.offers.map((offer) => <WatchOfferButton key={`${offer.platformId}-${offer.access}`} offer={offer} onPress={() => onOpenUrl(offer.url)} />)}
                 </View>
+                {!result.availability.offers.length && <Text style={styles.availabilityNote}>No hay una oferta regional vigente. El adaptador de catálogo debe actualizar este título antes de abrir una plataforma.</Text>}
                 <Text style={styles.availabilityNote}>La disponibilidad cambia por país. PYSUP abrirá el servicio oficial para confirmar el título antes de pagar o reproducir.</Text>
-                <View style={styles.rouletteReason}><Feather name="compass" size={18} color={colors.lime} /><View style={styles.rouletteReasonCopy}><Text style={styles.rouletteReasonTitle}>Por qué encaja contigo</Text><Text style={styles.rouletteReasonText}>{result.content.reason}</Text></View></View>
+                {!!result.content.reason && <View style={styles.rouletteReason}><Feather name="compass" size={18} color={colors.lime} /><View style={styles.rouletteReasonCopy}><Text style={styles.rouletteReasonTitle}>Por qué encaja contigo</Text><Text style={styles.rouletteReasonText}>{result.content.reason}</Text></View></View>}
                 <View style={styles.rouletteActions}>
-                  <Button label="No es para mí" icon="x" variant="ghost" onPress={spin} style={styles.rouletteAction} />
+                  <Button label="No es para mí" icon="x" variant="ghost" onPress={controller.rejectResult} style={styles.rouletteAction} />
                   <Button label={savedIds.includes(result.content.id) ? 'Ya está guardada' : 'Guardar para después'} icon="bookmark" variant="secondary" onPress={() => onSave(result.content.id)} style={styles.rouletteAction} />
                   <Button label="Ver ficha completa" icon="info" onPress={() => onOpen(result.content)} style={styles.rouletteAction} />
                 </View>

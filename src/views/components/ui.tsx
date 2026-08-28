@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Animated,
+  Image,
   ImageBackground,
   PanResponder,
-  Platform,
   Pressable,
   StyleProp,
   Text,
-  TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
@@ -72,12 +71,14 @@ export function IconButton({ icon, label, onPress, badge }: { icon: IconName; la
   );
 }
 
-export function Avatar({ initials, color = colors.purple, size = 42, online }: { initials: string; color?: string; size?: number; online?: boolean }) {
+export function Avatar({ initials, uri, color = colors.purple, size = 42, online }: { initials: string; uri?: string | null; color?: string; size?: number; online?: boolean }) {
   return (
     <View style={{ width: size, height: size }}>
-      <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]}>
-        <Text style={[styles.avatarText, { fontSize: Math.max(11, size * 0.31) }]}>{initials}</Text>
-      </View>
+      {uri ? <Image source={{ uri }} style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]} /> : (
+        <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]}>
+          <Text style={[styles.avatarText, { fontSize: Math.max(11, size * 0.31) }]}>{initials}</Text>
+        </View>
+      )}
       {online !== undefined && <View style={[styles.onlineDot, { backgroundColor: online ? colors.success : colors.textDim }]} />}
     </View>
   );

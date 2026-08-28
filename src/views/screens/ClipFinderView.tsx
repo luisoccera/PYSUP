@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ImageBackground,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -12,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ClipFinderController } from '../../controllers/useClipFinderController';
 import { ContentItem } from '../../models/types';
-import { Button, Pill, ProviderBadge } from '../components/ui';
+import { Button, Pill, WatchOfferButton } from '../components/ui';
 import { styles } from '../styles/clipFinderStyles';
 import { colors } from '../styles/theme';
 
@@ -21,6 +22,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
   const compact = width < 720;
   const {
     source,
+    country,
     selectSource,
     url,
     changeUrl,
@@ -35,8 +37,15 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
     progress,
     statusLabel,
     result,
+    selectedCandidate,
+    candidates,
+    selectedCandidateId,
+    setSelectedCandidateId,
+    availability,
     pickVideo,
     analyze,
+    retry,
+    confirm,
     reset,
   } = controller;
 
@@ -50,7 +59,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
               <Text style={styles.finderEyebrow}>IDENTIFICACIÓN VISUAL</Text>
               <Text style={styles.finderTitle}>¿De qué película es este clip?</Text>
             </View>
-            <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>DEMO</Text></View>
+            <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>SERVICIO PROTEGIDO</Text></View>
           </View>
           <Text style={styles.finderDescription}>Pega un enlace público o sube un fragmento. PYSUP combinará imagen, diálogo y contexto para encontrar el título y su disponibilidad regional.</Text>
 
@@ -78,7 +87,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
                   keyboardType="url"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  editable={state === 'idle'}
+                  editable={state === 'idle' || state === 'failed' || state === 'no_match'}
                   style={styles.input}
                 />
                 {!!url && urlSupported && <Feather name="check-circle" size={17} color={colors.success} />}
@@ -91,7 +100,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
               </View>
             </View>
           ) : (
-            <Pressable disabled={state !== 'idle'} onPress={pickVideo} style={({ pressed }) => [styles.dropzone, pressed && styles.dropzonePressed, !!file && styles.dropzoneSelected]}>
+            <Pressable disabled={!['idle', 'failed', 'no_match'].includes(state)} onPress={pickVideo} style={({ pressed }) => [styles.dropzone, pressed && styles.dropzonePressed, !!file && styles.dropzoneSelected]}>
               <View style={styles.uploadIcon}><Feather name={file ? 'check' : 'upload-cloud'} size={25} color={file ? colors.ink : colors.lime} /></View>
               <Text style={styles.dropzoneTitle}>{file ? file.name : 'Selecciona un fragmento'}</Text>
               <Text style={styles.dropzoneText}>{fileDescription}</Text>
@@ -106,23 +115,25 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
 
           {!!error && <View style={styles.errorRow}><Feather name="alert-circle" size={15} color={colors.coral} /><Text style={styles.errorText}>{error}</Text></View>}
 
-          {state !== 'idle' && state !== 'complete' && (
+          {!['idle', 'complete', 'no_match', 'failed'].includes(state) && (
             <View style={styles.progressCard}>
               <View style={styles.progressTop}><Text style={styles.progressLabel}>{statusLabel}</Text><Text style={styles.progressValue}>{progress}%</Text></View>
               <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
               <View style={styles.analysisSignals}>
-                <View style={styles.signal}><Feather name="image" size={13} color={progress >= 24 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Fotogramas</Text></View>
-                <View style={styles.signal}><Feather name="mic" size={13} color={progress >= 58 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Diálogo</Text></View>
-                <View style={styles.signal}><Feather name="map-pin" size={13} color={progress >= 82 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Disponibilidad</Text></View>
+                <View style={styles.signal}><Feather name="image" size={13} color={progress >= 25 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Fotogramas y OCR</Text></View>
+                <View style={styles.signal}><Feather name="mic" size={13} color={progress >= 35 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Audio y diálogo</Text></View>
+                <View style={styles.signal}><Feather name="map-pin" size={13} color={progress >= 80 ? colors.lime : colors.textDim} /><Text style={styles.signalText}>Catálogo {country}</Text></View>
               </View>
             </View>
           )}
 
           {state === 'idle' && <Button label="Identificar película o serie" icon="search" disabled={!canAnalyze} onPress={analyze} style={styles.analyzeButton} />}
+          {state === 'failed' && <Button label="Reintentar análisis" icon="refresh-cw" onPress={retry} style={styles.analyzeButton} />}
+          {state === 'no_match' && <View><Text style={styles.finderDescription}>No hubo coincidencias con evidencia suficiente. Prueba otro fragmento con diálogo o una escena más clara.</Text><Button label="Probar otro fragmento" icon="rotate-ccw" onPress={reset} style={styles.analyzeButton} /></View>}
         </View>
 
         <View style={styles.howCard}>
-          <Text style={styles.howEyebrow}>CÓMO FUNCIONARÍA</Text>
+          <Text style={styles.howEyebrow}>PROCESAMIENTO DEL SERVIDOR</Text>
           <Text style={styles.howTitle}>Tres señales, una respuesta</Text>
           {[
             { number: '01', icon: 'image' as const, title: 'Escenas', text: 'Objetos, locaciones, vestuario, créditos y composición visual.' },
@@ -139,13 +150,14 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
         </View>
       </View>
 
-      {state === 'complete' && (
+      {state === 'complete' && result && selectedCandidate && (
         <View style={styles.resultSection}>
-          <View style={styles.resultHeading}><View><Text style={styles.resultEyebrow}>94% DE CONFIANZA</Text><Text style={styles.resultHeadingTitle}>Encontramos una coincidencia</Text></View><Button label="Analizar otro" icon="rotate-ccw" variant="ghost" compact onPress={reset} /></View>
+          <View style={styles.resultHeading}><View><Text style={styles.resultEyebrow}>{Math.round(selectedCandidate.confidence * 100)}% DE CONFIANZA</Text><Text style={styles.resultHeadingTitle}>{candidates.length === 1 ? 'Encontramos una coincidencia' : `Encontramos ${candidates.length} candidatos`}</Text></View><Button label="Analizar otro" icon="rotate-ccw" variant="ghost" compact onPress={reset} /></View>
+          {candidates.length > 1 && <View style={styles.networks}>{candidates.map((candidate) => <Pill key={candidate.id} label={`${candidate.title} · ${Math.round(candidate.confidence * 100)}%`} active={selectedCandidateId === candidate.id} onPress={() => setSelectedCandidateId(candidate.id)} />)}</View>}
           <View style={[styles.resultCard, compact && styles.resultCardCompact]}>
             <ImageBackground source={result.image} style={[styles.resultImage, compact && styles.resultImageCompact]} imageStyle={styles.resultImageRadius}>
               <LinearGradient colors={['transparent', 'rgba(7,10,18,0.86)']} style={StyleSheet.absoluteFill} />
-              <View style={styles.confidenceBadge}><Text style={styles.confidenceValue}>94%</Text><Text style={styles.confidenceLabel}>COINCIDE</Text></View>
+              <View style={styles.confidenceBadge}><Text style={styles.confidenceValue}>{Math.round(selectedCandidate.confidence * 100)}%</Text><Text style={styles.confidenceLabel}>COINCIDE</Text></View>
             </ImageBackground>
             <View style={styles.resultCopy}>
               <Text style={styles.resultType}>{result.type.toUpperCase()} · {result.year}</Text>
@@ -153,12 +165,13 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
               <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
               <View style={styles.resultMeta}><Text style={styles.resultMetaText}>{result.duration}</Text><Text style={styles.resultMetaText}>{result.maturity}</Text>{result.genres.map((genre) => <Pill key={genre} label={genre} />)}</View>
               <Text style={styles.resultSynopsis}>{result.synopsis}</Text>
-              <View style={styles.evidenceCard}><Feather name="target" size={17} color={colors.lime} /><View style={styles.evidenceCopy}><Text style={styles.evidenceTitle}>Por qué coincide</Text><Text style={styles.evidenceText}>La iluminación de la cabina, el emblema de la misión y una línea parcial del diálogo aparecen en materiales verificados de este título.</Text></View></View>
-              <View style={styles.availabilityRow}><View><Text style={styles.availabilityLabel}>Disponible en México</Text><Text style={styles.availabilityNote}>Incluido con tu suscripción</Text></View>{result.providers.map((id) => <ProviderBadge key={id} id={id} />)}</View>
-              <View style={styles.resultActions}><Button label="Ver ficha completa" icon="arrow-up-right" onPress={() => onOpen(result)} style={styles.resultAction} /><Button label="No es esta" icon="x" variant="secondary" onPress={reset} style={styles.resultAction} /></View>
+              <View style={styles.evidenceCard}><Feather name="target" size={17} color={colors.lime} /><View style={styles.evidenceCopy}><Text style={styles.evidenceTitle}>Evidencia devuelta por el analizador</Text><Text style={styles.evidenceText}>{Object.keys(selectedCandidate.evidence).length ? Object.entries(selectedCandidate.evidence).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join(' · ') : 'El analizador no adjuntó evidencia; confirma el resultado manualmente.'}</Text></View></View>
+              <View style={styles.availabilityRow}><View><Text style={styles.availabilityLabel}>Disponibilidad para {country}</Text><Text style={styles.availabilityNote}>{availability?.offers.length ? 'Abre el proveedor oficial para confirmar.' : 'Sin ofertas regionales vigentes.'}</Text></View></View>
+              <View>{availability?.offers.map((offer) => <WatchOfferButton key={`${offer.platformId}-${offer.access}`} offer={offer} onPress={() => { void Linking.openURL(offer.url); }} />)}</View>
+              <View style={styles.resultActions}><Button label="Confirmar resultado" icon="check" onPress={() => { void confirm(selectedCandidate.id); }} style={styles.resultAction} /><Button label="Ver ficha completa" icon="arrow-up-right" onPress={() => onOpen(result)} style={styles.resultAction} /><Button label="No es esta" icon="x" variant="secondary" onPress={() => { void confirm(null).then(reset); }} style={styles.resultAction} /></View>
             </View>
           </View>
-          <Text style={styles.disclaimer}>Resultado demostrativo del MVP. La identificación real requiere un servicio de análisis y licencias de catálogo; la disponibilidad debe consultarse de nuevo al momento de mostrarla.</Text>
+          <Text style={styles.disclaimer}>El archivo original se elimina al terminar y la disponibilidad se vuelve a consultar por país. PYSUP no conserva ni transmite la película o serie.</Text>
         </View>
       )}
     </View>

@@ -42,6 +42,19 @@ export type ForumTopic = {
   replies: number;
   likes: number;
   solved?: boolean;
+  authorId?: string;
+  isOwn?: boolean;
+};
+
+export type ForumReply = {
+  id: string;
+  body: string;
+  author: string;
+  initials: string;
+  time: string;
+  containsSpoilers: boolean;
+  authorId?: string;
+  isOwn?: boolean;
 };
 
 export type Friend = {
@@ -60,7 +73,7 @@ export type ChatMessage = {
   senderId: 'me' | string;
   text: string;
   sentAt: string;
-  status?: 'sent' | 'read';
+  status?: 'sending' | 'sent' | 'read' | 'failed';
 };
 
 export type FriendsMode = 'messages' | 'room';
@@ -72,6 +85,19 @@ export type Review = {
   text: string;
   date: string;
   likes: number;
+  containsSpoilers?: boolean;
+};
+
+export type CommunityReview = {
+  id: string;
+  user_id: string;
+  rating: number;
+  body: string;
+  contains_spoilers: boolean;
+  created_at: string;
+  author: { display_name: string; username: string } | null;
+  like_count: number;
+  my_like: boolean;
 };
 
 export type TabId = 'home' | 'discover' | 'roulette' | 'forum' | 'friends' | 'profile' | 'settings';
@@ -80,7 +106,8 @@ export type NotificationDestination =
   | { kind: 'content'; contentId: string }
   | { kind: 'forum'; topicId: string }
   | { kind: 'friend'; friendId: string }
-  | { kind: 'room'; friendId: string }
+  | { kind: 'friendRequest'; requestId: string }
+  | { kind: 'room'; invitationId: string }
   | { kind: 'profile'; reviewId?: string }
   | { kind: 'roulette' };
 
@@ -104,7 +131,7 @@ export type HiddenGemProfile = {
 
 export type RouletteMood = 'uplifting' | 'intense' | 'calm' | 'thoughtful';
 
-export type RouletteFormat = 'any' | 'movie' | 'series';
+export type RouletteFormat = 'any' | 'movie' | 'series' | 'anime';
 
 export type WatchAccess = 'subscription' | 'rent' | 'purchase';
 
@@ -147,10 +174,18 @@ export type PreferenceKey =
 export type AppPreferences = Record<PreferenceKey, boolean>;
 
 export type Session = {
+  userId: string;
+  email: string;
   name: string;
+  username: string;
+  bio?: string;
+  avatarPath?: string | null;
+  coverPath?: string | null;
   country: string;
   connectedProviders: ProviderId[];
+  preferredGenres: string[];
   onboarded: boolean;
+  demo?: boolean;
 };
 
 export type OnboardingResult = {
@@ -160,4 +195,4 @@ export type OnboardingResult = {
 };
 
 export type ClipSourceKind = 'link' | 'file';
-export type ClipAnalysisState = 'idle' | 'extracting' | 'matching' | 'catalogue' | 'complete';
+export type ClipAnalysisState = 'idle' | 'uploading' | 'pending' | 'processing' | 'complete' | 'no_match' | 'failed';

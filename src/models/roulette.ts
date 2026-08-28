@@ -19,6 +19,7 @@ export const rouletteFormatOptions: { id: RouletteFormat; label: string }[] = [
   { id: 'any', label: 'Me da igual' },
   { id: 'movie', label: 'Película' },
   { id: 'series', label: 'Serie' },
+  { id: 'anime', label: 'Anime' },
 ];
 
 const hiddenGemProfiles: HiddenGemProfile[] = [
@@ -105,6 +106,7 @@ export function buildHiddenGemRecommendations(input: RouletteInput): RouletteRec
     if (!item.countries.includes(input.country)) return false;
     if (input.format === 'movie' && item.type !== 'Película') return false;
     if (input.format === 'series' && item.type === 'Película') return false;
+    if (input.format === 'anime' && item.type !== 'Anime') return false;
     const profile = hiddenGemProfiles.find((candidate) => candidate.contentId === item.id);
     return !input.mood || profile?.moods.includes(input.mood);
   });

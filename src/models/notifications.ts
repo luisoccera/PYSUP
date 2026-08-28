@@ -7,7 +7,7 @@ export const initialNotifications: AppNotification[] = [
     title: 'Sofía te invitó a una sala',
     text: 'Señal nocturna · Hoy, 9:30 p. m.',
     color: '#C8FF5A',
-    destination: { kind: 'room', friendId: 'f1' },
+    destination: { kind: 'room', invitationId: 'demo-invitation-f1' },
   },
   {
     id: 'notification-forum-replies',

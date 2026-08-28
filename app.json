@@ -10,7 +10,17 @@
     "description": "Descubre, comparte y disfruta películas y series con recomendaciones hechas para ti.",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.pysup.mobile"
+      "bundleIdentifier": "app.pysup.mobile",
+      "associatedDomains": [
+        "applinks:dominio-produccion.com"
+      ],
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "PYSUP necesita acceso para que elijas tu avatar o un fragmento de video.",
+        "NSUserNotificationsUsageDescription": "PYSUP usa notificaciones para mensajes, solicitudes, salas y respuestas.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,8 +29,72 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
-      ,"package": "app.pysup.mobile"
+      "predictiveBackGestureEnabled": false,
+      "package": "app.pysup.mobile",
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "POST_NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "dominio-produccion.com",
+              "pathPrefix": "/auth/callback"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "pysup",
+              "host": "auth",
+              "pathPrefix": "/callback"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "dominio-produccion.com",
+              "pathPrefix": "/room"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "pysup",
+              "host": "room"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -28,6 +102,24 @@
       "shortName": "PYSUP",
       "themeColor": "#070A12",
       "backgroundColor": "#070A12"
-    }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PYSUP necesita acceso para elegir tu avatar o un fragmento de video."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#B8FF3D"
+        }
+      ],
+      "expo-font"
+    ]
   }
 }

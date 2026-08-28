@@ -3,6 +3,8 @@ import { colors, radius, shadow } from './theme';
 
 export const mainStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ink },
+  offlineBanner: { minHeight: 34, backgroundColor: colors.coral, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 7 },
+  offlineText: { color: colors.white, fontSize: 10, lineHeight: 15, fontWeight: '800', textAlign: 'center' },
   shell: { flex: 1, flexDirection: 'row' },
   main: { flex: 1, backgroundColor: colors.inkSoft, minWidth: 0 },
 
@@ -243,6 +245,7 @@ export const mainStyles = StyleSheet.create({
   topicDetailHeading: { flex: 1 },
   topicDetailAuthor: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 17 },
   topicDetailBody: { color: colors.text, fontSize: 14, lineHeight: 22 },
+  topicManagement: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 13 },
   topicDetailStats: { flexDirection: 'row', gap: 18, borderTopWidth: 1, borderTopColor: colors.line, borderBottomWidth: 1, borderBottomColor: colors.line, paddingVertical: 14, marginTop: 17 },
   topicDetailReply: { backgroundColor: colors.inkSoft, borderRadius: radius.md, padding: 15, marginTop: 17 },
   topicDetailReplyLabel: { color: colors.lime, fontSize: 8, fontWeight: '900', letterSpacing: 1.2 },
@@ -418,6 +421,8 @@ export const mainStyles = StyleSheet.create({
   securityNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, backgroundColor: 'rgba(98,217,159,0.07)', borderRadius: 12, padding: 11, marginBottom: 12 },
   securityNoteText: { color: colors.textMuted, fontSize: 9, lineHeight: 14, flex: 1 },
   settingsLogout: { marginTop: 9 },
+  joinRoomRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  roomInviteLink: { color: colors.blue, fontSize: 10, marginTop: 5 },
 
   detailBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.78)', justifyContent: 'flex-end', alignItems: 'center' },
   detailModal: { width: '100%', maxWidth: 760, maxHeight: '94%', backgroundColor: colors.panel, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },

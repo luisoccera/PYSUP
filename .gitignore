@@ -8,6 +8,9 @@ node_modules/
 .expo/
 dist/
 web-build/
+playwright-report/
+test-results/
+coverage/
 expo-env.d.ts
 
 # Native
@@ -28,6 +31,9 @@ yarn-debug.*
 yarn-error.*
 .expo-web.*.log
 .pysup-preview.*.log
+*.mp4
+*.mov
+*.webm
 
 # macOS
 .DS_Store
@@ -46,3 +52,4 @@ credentials.json
 # generated native folders
 /ios
 /android
+.supabase/

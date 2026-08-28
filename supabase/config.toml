@@ -1,0 +1,28 @@
+project_id = "pysup"
+
+[auth]
+site_url = "http://127.0.0.1:8081"
+additional_redirect_urls = ["pysup://auth/callback", "http://127.0.0.1:8081/auth/callback", "https://dominio-produccion.com/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+[storage]
+file_size_limit = "80MiB"
+
+[functions.clip-analysis]
+verify_jwt = true
+
+[functions.export-user-data]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
+
+[functions.purge-expired-clips]
+verify_jwt = false
+
+[functions.push-dispatch]
+verify_jwt = false
+
+[functions.catalog-sync]
+verify_jwt = false

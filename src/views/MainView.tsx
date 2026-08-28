@@ -1,7 +1,9 @@
-import React from 'react';
-import { SafeAreaView, useWindowDimensions, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { BackHandler, Platform, Text, useWindowDimensions, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { MainController } from '../controllers/useMainController';
+import { useConnectivity } from '../hooks/useConnectivity';
 import { AppHeader, MobileNav, Sidebar } from './layout/AppNavigation';
 import { ContentModal, NotificationsModal } from './modals/AppModals';
 import { DiscoverScreen } from './screens/DiscoverView';
@@ -16,16 +18,24 @@ import { mainStyles as styles } from './styles/mainStyles';
 type MainViewProps = {
   controller: MainController;
   onLogout: () => void;
+  onLogoutAll: () => void;
 };
 
-export function MainView({ controller, onLogout }: MainViewProps) {
+export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
   const { width } = useWindowDimensions();
+  const { isOffline } = useConnectivity();
   const wide = width >= 980;
   const {
     activeTab,
     setActiveTab,
+    userId,
     name,
-    setName,
+    username,
+    bio,
+    updatePublicProfile,
+    avatarUrl,
+    coverUrl,
+    profileStats,
     selectedCountry,
     setSelectedCountry,
     connectedProviders,
@@ -33,17 +43,33 @@ export function MainView({ controller, onLogout }: MainViewProps) {
     preferences,
     updatePreference,
     likedIds,
+    items,
     savedIds,
-    like,
     save,
+    interact,
     reviews,
     addReview,
+    deleteReview,
+    communityReviews,
+    toggleCommunityReviewLike,
     topics,
     createTopic,
+    loadForumReplies,
+    subscribeForumReplies,
+    replyToTopic,
+    updateForumReply,
+    deleteForumReply,
+    updateForumTopic,
+    deleteForumTopic,
+    reportForumTopic,
+    blockForumAuthor,
+    likeForumTopic,
+    acceptForumReply,
     friendsController,
     rouletteController,
     selectedAvailability,
     openExternalUrl,
+    openTrailerUrl,
     selectedContent,
     setSelectedContent,
     notificationsOpen,
@@ -55,11 +81,33 @@ export function MainView({ controller, onLogout }: MainViewProps) {
     clearFocusedForumTopic,
     toggleSelectedLike,
     toggleSelectedSave,
+    changeAvatar,
+    removeAvatar,
+    changeCover,
+    removeCover,
+    downloadMyData,
+    changePassword,
+    deleteAccount,
+    blockedUsers,
+    unblockUser,
+    countryName,
   } = controller;
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (notificationsOpen) { setNotificationsOpen(false); return true; }
+      if (selectedContent) { setSelectedContent(null); return true; }
+      if (activeTab !== 'home') { setActiveTab('home'); return true; }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [activeTab, notificationsOpen, selectedContent, setActiveTab, setNotificationsOpen, setSelectedContent]);
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="light" />
+      {isOffline && <View accessibilityRole="alert" style={styles.offlineBanner}><Text style={styles.offlineText}>Sin conexión · conservaremos esta pantalla y las acciones remotas volverán al recuperar la red.</Text></View>}
       <View style={styles.shell}>
         {wide && (
           <Sidebar
@@ -81,6 +129,9 @@ export function MainView({ controller, onLogout }: MainViewProps) {
           {activeTab === 'home' && (
             <HomeScreen
               name={name}
+              countryName={countryName}
+              stats={profileStats}
+              items={items}
               wide={wide}
               onDiscover={() => setActiveTab('discover')}
               onFriends={() => setActiveTab('friends')}
@@ -89,11 +140,13 @@ export function MainView({ controller, onLogout }: MainViewProps) {
           )}
           {activeTab === 'discover' && (
             <DiscoverScreen
+              country={selectedCountry}
+              wifiOnly={preferences.wifiOnly}
+              items={items}
               onOpen={setSelectedContent}
               liked={likedIds}
               saved={savedIds}
-              onLiked={like}
-              onSaved={save}
+              onAction={interact}
             />
           )}
           {activeTab === 'roulette' && (
@@ -103,24 +156,37 @@ export function MainView({ controller, onLogout }: MainViewProps) {
               onSave={save}
               onOpen={setSelectedContent}
               onOpenUrl={openExternalUrl}
+              onOpenTrailer={openTrailerUrl}
             />
           )}
-          {activeTab === 'forum' && <ForumScreen topics={topics} onCreate={createTopic} focusedTopicId={focusedForumTopicId} onFocusHandled={clearFocusedForumTopic} />}
+          {activeTab === 'forum' && <ForumScreen topics={topics} hideSpoilers={preferences.hideSpoilers} onCreate={createTopic} onLoadReplies={loadForumReplies} onSubscribeReplies={subscribeForumReplies} onReply={replyToTopic} onUpdateReply={updateForumReply} onDeleteReply={deleteForumReply} onLike={likeForumTopic} onAcceptReply={acceptForumReply} onUpdate={updateForumTopic} onDelete={deleteForumTopic} onReport={reportForumTopic} onBlockAuthor={blockForumAuthor} focusedTopicId={focusedForumTopicId} onFocusHandled={clearFocusedForumTopic} />}
           {activeTab === 'friends' && <FriendsScreen controller={friendsController} />}
           {activeTab === 'profile' && (
             <ProfileScreen
               name={name}
+              username={username}
+              bio={bio}
+              avatarUrl={avatarUrl}
+              coverUrl={coverUrl}
+              stats={profileStats}
+              hideSpoilers={preferences.hideSpoilers}
               country={selectedCountry}
+              items={items}
               reviews={reviews}
-              liked={likedIds}
               saved={savedIds}
               onOpen={setSelectedContent}
-              onEdit={setName}
+              onEdit={updatePublicProfile}
+              onChangeAvatar={changeAvatar}
+              onRemoveAvatar={removeAvatar}
+              onChangeCover={changeCover}
+              onRemoveCover={removeCover}
             />
           )}
           {activeTab === 'settings' && (
             <SettingsScreen
               name={name}
+              username={username}
+              avatarUrl={avatarUrl}
               country={selectedCountry}
               connected={connectedProviders}
               preferences={preferences}
@@ -129,6 +195,12 @@ export function MainView({ controller, onLogout }: MainViewProps) {
               onConnect={toggleProvider}
               onProfile={() => setActiveTab('profile')}
               onLogout={onLogout}
+              onLogoutAll={onLogoutAll}
+              onDownloadData={downloadMyData}
+              onChangePassword={changePassword}
+              onDeleteAccount={deleteAccount}
+              blockedUsers={blockedUsers}
+              onUnblock={unblockUser}
             />
           )}
         </View>
@@ -139,12 +211,19 @@ export function MainView({ controller, onLogout }: MainViewProps) {
         visible={!!selectedContent}
         onClose={() => setSelectedContent(null)}
         onReview={addReview}
+        existingReview={selectedContent ? reviews.find((review) => review.contentId === selectedContent.id) ?? null : null}
+        onDeleteReview={deleteReview}
+        communityReviews={communityReviews}
+        currentUserId={userId}
+        onToggleCommunityReviewLike={toggleCommunityReviewLike}
+        hideSpoilers={preferences.hideSpoilers}
         isLiked={!!selectedContent && likedIds.includes(selectedContent.id)}
         isSaved={!!selectedContent && savedIds.includes(selectedContent.id)}
         onLike={toggleSelectedLike}
         onSave={toggleSelectedSave}
         availability={selectedAvailability}
         onOpenUrl={openExternalUrl}
+        onOpenTrailer={openTrailerUrl}
       />
       <NotificationsModal
         visible={notificationsOpen}
