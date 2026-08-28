@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { BackHandler, Platform, Text, useWindowDimensions, View } from 'react-native';
+import { BackHandler, Platform, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { MainController } from '../controllers/useMainController';
 import { useConnectivity } from '../hooks/useConnectivity';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import { AppHeader, MobileNav, Sidebar } from './layout/AppNavigation';
 import { ContentModal, NotificationsModal } from './modals/AppModals';
 import { DiscoverScreen } from './screens/DiscoverView';
@@ -22,9 +23,10 @@ type MainViewProps = {
 };
 
 export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
-  const { width } = useWindowDimensions();
+  const responsive = useResponsiveLayout();
   const { isOffline } = useConnectivity();
-  const wide = width >= 980;
+  const showSidebar = responsive.isDesktop;
+  const wideContent = responsive.hasWideContent;
   const {
     activeTab,
     setActiveTab,
@@ -105,11 +107,11 @@ export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
   }, [activeTab, notificationsOpen, selectedContent, setActiveTab, setNotificationsOpen, setSelectedContent]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safe}>
       <StatusBar style="light" />
       {isOffline && <View accessibilityRole="alert" style={styles.offlineBanner}><Text style={styles.offlineText}>Sin conexión · conservaremos esta pantalla y las acciones remotas volverán al recuperar la red.</Text></View>}
       <View style={styles.shell}>
-        {wide && (
+        {showSidebar && (
           <Sidebar
             active={activeTab}
             onSelect={setActiveTab}
@@ -132,7 +134,7 @@ export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
               countryName={countryName}
               stats={profileStats}
               items={items}
-              wide={wide}
+              wide={wideContent}
               onDiscover={() => setActiveTab('discover')}
               onFriends={() => setActiveTab('friends')}
               onOpen={setSelectedContent}
@@ -205,7 +207,7 @@ export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
           )}
         </View>
       </View>
-      {!wide && <MobileNav active={activeTab} onSelect={setActiveTab} />}
+      {!showSidebar && <MobileNav active={activeTab} onSelect={setActiveTab} />}
       <ContentModal
         item={selectedContent}
         visible={!!selectedContent}

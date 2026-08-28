@@ -10,6 +10,7 @@
     "description": "Descubre, comparte y disfruta películas y series con recomendaciones hechas para ti.",
     "ios": {
       "supportsTablet": true,
+      "requireFullScreen": false,
       "bundleIdentifier": "app.pysup.mobile",
       "associatedDomains": [
         "applinks:dominio-produccion.com"
@@ -23,6 +24,7 @@
       }
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -110,7 +112,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "PYSUP necesita acceso para elegir tu avatar o un fragmento de video."
+          "photosPermission": "PYSUP necesita acceso para elegir tu avatar o un fragmento de video.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       [

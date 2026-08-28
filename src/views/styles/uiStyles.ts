@@ -113,6 +113,7 @@ export const styles = StyleSheet.create({
   miniPosterMeta: { color: '#D0D5DF', fontSize: 11, fontWeight: '600' },
 
   deckWrap: { width: '100%', maxWidth: 470, alignSelf: 'center', paddingBottom: 92 },
+  deckWrapPhone: { paddingBottom: 84 },
 
   swipeCard: { height: 620, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.panel, ...shadow },
 
@@ -125,6 +126,7 @@ export const styles = StyleSheet.create({
   swipeImageRadius: { borderRadius: radius.xl },
 
   swipeGradient: { flex: 1, justifyContent: 'space-between', padding: 22 },
+  swipeGradientPhone: { padding: 16 },
 
   swipeTopRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
 
@@ -141,6 +143,7 @@ export const styles = StyleSheet.create({
   swipeType: { color: colors.lime, fontSize: 11, letterSpacing: 1.6, fontWeight: '900' },
 
   swipeTitle: { color: colors.white, fontSize: 38, lineHeight: 40, fontWeight: '900', letterSpacing: -1.4, maxWidth: 360 },
+  swipeTitlePhone: { fontSize: 31, lineHeight: 34, letterSpacing: -0.9 },
 
   swipeSubtitle: { color: '#E7EAF0', fontSize: 14, lineHeight: 20, fontWeight: '600' },
 

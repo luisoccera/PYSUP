@@ -6,20 +6,20 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ClipFinderController } from '../../controllers/useClipFinderController';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { ContentItem } from '../../models/types';
 import { Button, Pill, WatchOfferButton } from '../components/ui';
 import { styles } from '../styles/clipFinderStyles';
 import { colors } from '../styles/theme';
 
 export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderController; onOpen: (item: ContentItem) => void }) {
-  const { width } = useWindowDimensions();
-  const compact = width < 720;
+  const responsive = useResponsiveLayout();
+  const compact = responsive.width < 720;
   const {
     source,
     country,
@@ -52,14 +52,14 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
   return (
     <View style={styles.root}>
       <View style={[styles.introGrid, compact && styles.introGridCompact]}>
-        <View style={styles.finderCard}>
-          <View style={styles.finderHeader}>
+        <View style={[styles.finderCard, responsive.isPhone && styles.finderCardPhone]}>
+          <View style={[styles.finderHeader, responsive.isPhone && styles.finderHeaderPhone]}>
             <View style={styles.finderIcon}><Feather name="film" size={24} color={colors.ink} /></View>
             <View style={styles.finderHeaderCopy}>
               <Text style={styles.finderEyebrow}>IDENTIFICACIÓN VISUAL</Text>
               <Text style={styles.finderTitle}>¿De qué película es este clip?</Text>
             </View>
-            <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>SERVICIO PROTEGIDO</Text></View>
+            <View style={[styles.demoBadge, responsive.isPhone && styles.demoBadgePhone]}><Text style={styles.demoBadgeText}>SERVICIO PROTEGIDO</Text></View>
           </View>
           <Text style={styles.finderDescription}>Pega un enlace público o sube un fragmento. PYSUP combinará imagen, diálogo y contexto para encontrar el título y su disponibilidad regional.</Text>
 
@@ -132,7 +132,7 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
           {state === 'no_match' && <View><Text style={styles.finderDescription}>No hubo coincidencias con evidencia suficiente. Prueba otro fragmento con diálogo o una escena más clara.</Text><Button label="Probar otro fragmento" icon="rotate-ccw" onPress={reset} style={styles.analyzeButton} /></View>}
         </View>
 
-        <View style={styles.howCard}>
+        <View style={[styles.howCard, responsive.isPhone && styles.howCardPhone]}>
           <Text style={styles.howEyebrow}>PROCESAMIENTO DEL SERVIDOR</Text>
           <Text style={styles.howTitle}>Tres señales, una respuesta</Text>
           {[
@@ -152,16 +152,16 @@ export function ClipFinderView({ controller, onOpen }: { controller: ClipFinderC
 
       {state === 'complete' && result && selectedCandidate && (
         <View style={styles.resultSection}>
-          <View style={styles.resultHeading}><View><Text style={styles.resultEyebrow}>{Math.round(selectedCandidate.confidence * 100)}% DE CONFIANZA</Text><Text style={styles.resultHeadingTitle}>{candidates.length === 1 ? 'Encontramos una coincidencia' : `Encontramos ${candidates.length} candidatos`}</Text></View><Button label="Analizar otro" icon="rotate-ccw" variant="ghost" compact onPress={reset} /></View>
+          <View style={[styles.resultHeading, responsive.isPhone && styles.resultHeadingPhone]}><View><Text style={styles.resultEyebrow}>{Math.round(selectedCandidate.confidence * 100)}% DE CONFIANZA</Text><Text style={styles.resultHeadingTitle}>{candidates.length === 1 ? 'Encontramos una coincidencia' : `Encontramos ${candidates.length} candidatos`}</Text></View><Button label="Analizar otro" icon="rotate-ccw" variant="ghost" compact onPress={reset} /></View>
           {candidates.length > 1 && <View style={styles.networks}>{candidates.map((candidate) => <Pill key={candidate.id} label={`${candidate.title} · ${Math.round(candidate.confidence * 100)}%`} active={selectedCandidateId === candidate.id} onPress={() => setSelectedCandidateId(candidate.id)} />)}</View>}
           <View style={[styles.resultCard, compact && styles.resultCardCompact]}>
             <ImageBackground source={result.image} style={[styles.resultImage, compact && styles.resultImageCompact]} imageStyle={styles.resultImageRadius}>
               <LinearGradient colors={['transparent', 'rgba(7,10,18,0.86)']} style={StyleSheet.absoluteFill} />
               <View style={styles.confidenceBadge}><Text style={styles.confidenceValue}>{Math.round(selectedCandidate.confidence * 100)}%</Text><Text style={styles.confidenceLabel}>COINCIDE</Text></View>
             </ImageBackground>
-            <View style={styles.resultCopy}>
+            <View style={[styles.resultCopy, responsive.isPhone && styles.resultCopyPhone]}>
               <Text style={styles.resultType}>{result.type.toUpperCase()} · {result.year}</Text>
-              <Text style={styles.resultTitle}>{result.title}</Text>
+              <Text style={[styles.resultTitle, responsive.isPhone && styles.resultTitlePhone]}>{result.title}</Text>
               <Text style={styles.resultSubtitle}>{result.subtitle}</Text>
               <View style={styles.resultMeta}><Text style={styles.resultMetaText}>{result.duration}</Text><Text style={styles.resultMetaText}>{result.maturity}</Text>{result.genres.map((genre) => <Pill key={genre} label={genre} />)}</View>
               <Text style={styles.resultSynopsis}>{result.synopsis}</Text>

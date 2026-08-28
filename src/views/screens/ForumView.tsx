@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ForumReply, ForumTopic } from '../../models/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Avatar, Button, IconButton, Pill } from '../components/ui';
 import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
 
-function TopicCard({ topic, highlighted, onOpen }: { topic: ForumTopic; highlighted?: boolean; onOpen: () => void }) {
+function TopicCard({ topic, highlighted, compact, onOpen }: { topic: ForumTopic; highlighted?: boolean; compact: boolean; onOpen: () => void }) {
   return (
-    <Pressable onPress={onOpen} style={({ pressed }) => [styles.topicCard, highlighted && styles.topicCardHighlighted, pressed && styles.cardPressed]}>
+    <Pressable onPress={onOpen} style={({ pressed }) => [styles.topicCard, compact && styles.topicCardPhone, highlighted && styles.topicCardHighlighted, pressed && styles.cardPressed]}>
       <View style={styles.topicTop}>
         <Avatar initials={topic.initials} size={38} color={topic.kind === 'identify' ? '#457B9D' : '#6B5CA5'} />
         <View style={styles.topicAuthor}><Text style={styles.topicAuthorName}>{topic.author}</Text><Text style={styles.topicTime}>{topic.time}</Text></View>
@@ -18,7 +19,7 @@ function TopicCard({ topic, highlighted, onOpen }: { topic: ForumTopic; highligh
       <Text style={styles.topicTitle}>{topic.title}</Text>
       <Text numberOfLines={3} style={styles.topicBody}>{topic.body}</Text>
       <View style={styles.topicTags}>{topic.tags.map((tag) => <Pill key={tag} label={tag} />)}</View>
-      <View style={styles.topicFooter}>
+      <View style={[styles.topicFooter, compact && styles.topicFooterPhone]}>
         <View style={styles.topicMetric}><Feather name="message-circle" size={15} color={colors.textMuted} /><Text style={styles.topicMetricText}>{topic.replies} respuestas</Text></View>
         <View style={styles.topicMetric}><Feather name="heart" size={15} color={colors.textMuted} /><Text style={styles.topicMetricText}>{topic.likes}</Text></View>
         <View style={styles.topicOpen}><Text style={styles.topicOpenText}>Abrir conversación</Text><Feather name="arrow-right" size={14} color={colors.lime} /></View>
@@ -47,8 +48,8 @@ type ForumScreenProps = {
 };
 
 export function ForumScreen({ topics, hideSpoilers, onCreate, onLoadReplies, onSubscribeReplies, onReply, onUpdateReply, onDeleteReply, onLike, onAcceptReply, onUpdate, onDelete, onReport, onBlockAuthor, focusedTopicId, onFocusHandled }: ForumScreenProps) {
-  const { width } = useWindowDimensions();
-  const compact = width < 720;
+  const responsive = useResponsiveLayout();
+  const compact = responsive.width < 720;
   const [kind, setKind] = useState<'discussion' | 'identify'>('discussion');
   const [search, setSearch] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
@@ -193,21 +194,21 @@ export function ForumScreen({ topics, hideSpoilers, onCreate, onLoadReplies, onS
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.screenContent, responsive.isPhone && styles.screenContentPhone, responsive.isTablet && styles.screenContentTablet, { paddingHorizontal: responsive.gutter, paddingTop: responsive.contentTop }]} showsVerticalScrollIndicator={false}>
       <View style={[styles.forumTitleRow, compact && styles.forumTitleRowCompact]}><PageTitle eyebrow="LA CONVERSACIÓN SIGUE" title="Foros de la comunidad" description="Debate escenas, comparte teorías o encuentra esa historia que sólo recuerdas a medias." /><Button label="Nueva publicación" icon="plus" onPress={() => setCreateOpen(true)} style={compact ? styles.forumCreateMobile : undefined} /></View>
       <View style={styles.forumToolbar}>
-        <View style={styles.forumTabs}>
-          <Pressable onPress={() => setKind('discussion')} style={[styles.forumTab, kind === 'discussion' && styles.forumTabActive]}><Feather name="message-square" size={17} color={kind === 'discussion' ? colors.ink : colors.textMuted} /><Text style={[styles.forumTabText, kind === 'discussion' && styles.forumTabTextActive]}>Debates</Text></Pressable>
-          <Pressable onPress={() => setKind('identify')} style={[styles.forumTab, kind === 'identify' && styles.forumTabActive]}><Feather name="search" size={17} color={kind === 'identify' ? colors.ink : colors.textMuted} /><Text style={[styles.forumTabText, kind === 'identify' && styles.forumTabTextActive]}>¿Qué película era?</Text></Pressable>
+        <View style={[styles.forumTabs, responsive.isPhone && styles.forumTabsPhone]}>
+          <Pressable onPress={() => setKind('discussion')} style={[styles.forumTab, responsive.isPhone && styles.forumTabPhone, kind === 'discussion' && styles.forumTabActive]}><Feather name="message-square" size={17} color={kind === 'discussion' ? colors.ink : colors.textMuted} /><Text numberOfLines={1} style={[styles.forumTabText, kind === 'discussion' && styles.forumTabTextActive]}>Debates</Text></Pressable>
+          <Pressable onPress={() => setKind('identify')} style={[styles.forumTab, responsive.isPhone && styles.forumTabPhone, kind === 'identify' && styles.forumTabActive]}><Feather name="search" size={17} color={kind === 'identify' ? colors.ink : colors.textMuted} /><Text numberOfLines={1} style={[styles.forumTabText, kind === 'identify' && styles.forumTabTextActive]}>¿Qué película era?</Text></Pressable>
         </View>
-        <View style={styles.searchBox}><Feather name="search" size={17} color={colors.textDim} /><TextInput value={search} onChangeText={setSearch} placeholder="Buscar conversaciones" placeholderTextColor={colors.textDim} style={styles.searchInput} /></View>
+        <View style={[styles.searchBox, responsive.isPhone && styles.searchBoxPhone]}><Feather name="search" size={17} color={colors.textDim} /><TextInput value={search} onChangeText={setSearch} placeholder="Buscar conversaciones" placeholderTextColor={colors.textDim} style={styles.searchInput} /></View>
       </View>
       {kind === 'identify' && <View style={styles.identifyInfo}><View style={styles.identifyIcon}><Feather name="help-circle" size={21} color={colors.blue} /></View><View style={styles.identifyCopy}><Text style={styles.identifyTitle}>Cuantos más detalles, mejor</Text><Text style={styles.identifyText}>Describe escenas, época aproximada, idioma, actores, animación o dónde la viste. La comunidad puede marcar la respuesta correcta.</Text></View></View>}
-      <View style={styles.topicGrid}>{visible.map((topic) => <TopicCard key={topic.id} topic={topic} highlighted={topic.id === focusedTopicId} onOpen={() => setSelectedTopic(topic)} />)}</View>
+      <View style={styles.topicGrid}>{visible.map((topic) => <TopicCard key={topic.id} topic={topic} compact={compact} highlighted={topic.id === focusedTopicId} onOpen={() => setSelectedTopic(topic)} />)}</View>
       {!visible.length && <View style={styles.emptyState}><Feather name="search" size={30} color={colors.textDim} /><Text style={styles.emptyTitle}>No encontramos conversaciones</Text><Text style={styles.emptyText}>Prueba con otras palabras o crea la primera publicación.</Text></View>}
 
       <Modal transparent visible={createOpen} animationType="fade" onRequestClose={() => setCreateOpen(false)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <View style={styles.modalHeader}><View><Text style={styles.modalEyebrow}>{kind === 'identify' ? 'AYUDA DE LA COMUNIDAD' : 'NUEVO DEBATE'}</Text><Text style={styles.modalTitle}>{kind === 'identify' ? '¿Qué película o serie era?' : 'Inicia una conversación'}</Text></View><IconButton icon="x" label="Cerrar" onPress={() => setCreateOpen(false)} /></View>
           <Text style={styles.inputLabel}>Título</Text><TextInput value={title} onChangeText={setTitle} maxLength={100} placeholder={kind === 'identify' ? 'Ej. Película sobre una estación que aparecía de noche' : 'Una pregunta clara atrae mejores respuestas'} placeholderTextColor={colors.textDim} style={styles.modalInput} />
           <Text style={styles.inputLabel}>Detalles</Text><TextInput value={body} onChangeText={setBody} multiline maxLength={800} placeholder="Comparte lo que recuerdas, tu teoría o el contexto de la conversación…" placeholderTextColor={colors.textDim} style={[styles.modalInput, styles.modalTextarea]} />
@@ -218,7 +219,7 @@ export function ForumScreen({ topics, hideSpoilers, onCreate, onLoadReplies, onS
       </Modal>
 
       <Modal transparent visible={!!selectedTopic} animationType="fade" onRequestClose={() => setSelectedTopic(null)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           {selectedTopic && <><View style={styles.modalHeader}><View style={styles.topicDetailHeading}><Text style={styles.modalEyebrow}>{selectedTopic.kind === 'identify' ? 'AYÚDAME A ENCONTRARLA' : 'DEBATE DE LA COMUNIDAD'}</Text><Text style={styles.modalTitle}>{selectedTopic.title}</Text></View><IconButton icon="x" label="Cerrar conversación" onPress={() => { setActionMode(null); setSelectedTopic(null); }} /></View><ScrollView showsVerticalScrollIndicator={false}><View style={styles.topicDetailAuthor}><Avatar initials={selectedTopic.initials} size={42} color={selectedTopic.kind === 'identify' ? '#457B9D' : '#6B5CA5'} /><View><Text style={styles.topicAuthorName}>{selectedTopic.author}</Text><Text style={styles.topicTime}>{selectedTopic.time}</Text></View></View><Text style={styles.topicDetailBody}>{selectedTopic.body}</Text><View style={styles.topicTags}>{selectedTopic.tags.map((tag) => <Pill key={tag} label={tag} />)}</View><View style={styles.topicManagement}>{selectedTopic.isOwn ? <><Button label="Editar" icon="edit-2" compact variant="secondary" onPress={() => openAction('edit')} /><Button label="Eliminar" icon="trash-2" compact variant="ghost" onPress={confirmDelete} /></> : <><Button label="Reportar" icon="flag" compact variant="ghost" onPress={() => openAction('report')} />{!!selectedTopic.authorId && <Button label="Bloquear usuario" icon="slash" compact variant="ghost" onPress={confirmBlock} />}</>}</View><View style={styles.topicDetailStats}><View style={styles.topicMetric}><Feather name="message-circle" size={15} color={colors.lime} /><Text style={styles.topicMetricText}>{replies.length} respuestas</Text></View><Pressable onPress={() => toggleLike(selectedTopic.id)} style={styles.topicMetric}><Feather name="heart" size={15} color={likedTopics.includes(selectedTopic.id) ? colors.coral : colors.textMuted} /><Text style={styles.topicMetricText}>{likedTopics.includes(selectedTopic.id) ? 'Te gusta' : 'Dar like'}</Text></Pressable></View>
           {replies.map((reply) => <View key={reply.id} style={styles.topicDetailReply}><Text style={styles.topicDetailReplyLabel}>{reply.author} · {reply.time}</Text>{reply.containsSpoilers && hideSpoilers && !revealedReplies.includes(reply.id) ? <Pressable onPress={() => setRevealedReplies((current) => [...current, reply.id])}><Text style={styles.topicDetailReplyText}>⚠ Respuesta con spoilers · Toca para revelar</Text></Pressable> : <Text style={styles.topicDetailReplyText}>{reply.body}</Text>}{reply.isOwn && <View style={styles.topicManagement}><Button label="Editar respuesta" icon="edit-2" compact variant="ghost" onPress={() => { setEditingReply(reply); setEditingReplyBody(reply.body); setEditingReplySpoiler(reply.containsSpoilers); setActionMessage(''); }} /><Button label="Eliminar respuesta" icon="trash-2" compact variant="ghost" onPress={() => confirmDeleteReply(reply)} /></View>}{selectedTopic.isOwn && selectedTopic.kind === 'identify' && !selectedTopic.solved && !reply.isOwn && <Button label="Marcar como respuesta correcta" icon="check-circle" compact variant="ghost" onPress={() => { void onAcceptReply(selectedTopic.id, reply.id).then(() => setSelectedTopic({ ...selectedTopic, solved: true })).catch((error: unknown) => setReplyError(error instanceof Error ? error.message : 'No se pudo aceptar la respuesta.')); }} />}</View>)}
           {!replies.length && <Text style={styles.emptyText}>Todavía no hay respuestas. Sé la primera persona en participar.</Text>}
@@ -229,7 +230,7 @@ export function ForumScreen({ topics, hideSpoilers, onCreate, onLoadReplies, onS
       </Modal>
 
       <Modal transparent visible={actionMode !== null} animationType="fade" onRequestClose={() => setActionMode(null)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <View style={styles.modalHeader}><View><Text style={styles.modalEyebrow}>{actionMode === 'edit' ? 'EDITAR PUBLICACIÓN' : 'MODERACIÓN'}</Text><Text style={styles.modalTitle}>{actionMode === 'edit' ? 'Actualiza tu conversación' : 'Reportar publicación'}</Text></View><IconButton icon="x" label="Cerrar" onPress={() => setActionMode(null)} /></View>
           {actionMode === 'edit' && <><Text style={styles.inputLabel}>Título</Text><TextInput value={actionTitle} onChangeText={setActionTitle} maxLength={160} placeholderTextColor={colors.textDim} style={styles.modalInput} /></>}
           <Text style={styles.inputLabel}>{actionMode === 'edit' ? 'Detalles' : 'Motivo del reporte'}</Text><TextInput value={actionBody} onChangeText={setActionBody} multiline maxLength={actionMode === 'edit' ? 6000 : 500} placeholder={actionMode === 'report' ? 'Explica claramente qué regla incumple…' : undefined} placeholderTextColor={colors.textDim} style={[styles.modalInput, styles.modalTextarea]} />
@@ -239,7 +240,7 @@ export function ForumScreen({ topics, hideSpoilers, onCreate, onLoadReplies, onS
       </Modal>
 
       <Modal transparent visible={editingReply !== null} animationType="fade" onRequestClose={() => setEditingReply(null)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <View style={styles.modalHeader}><View><Text style={styles.modalEyebrow}>TU RESPUESTA</Text><Text style={styles.modalTitle}>Editar respuesta</Text></View><IconButton icon="x" label="Cerrar" onPress={() => setEditingReply(null)} /></View>
           <TextInput value={editingReplyBody} onChangeText={setEditingReplyBody} multiline maxLength={6000} placeholderTextColor={colors.textDim} style={[styles.modalInput, styles.modalTextarea]} />
           <Pressable onPress={() => setEditingReplySpoiler((current) => !current)} style={styles.topicMetric}><Feather name={editingReplySpoiler ? 'check-square' : 'square'} size={17} color={editingReplySpoiler ? colors.lime : colors.textMuted} /><Text style={styles.topicMetricText}>Contiene spoilers</Text></Pressable>

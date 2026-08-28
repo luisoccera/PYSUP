@@ -4,13 +4,13 @@ import {
   ImageBackground,
   ScrollView,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { RouletteControllerState } from '../../controllers/useRouletteController';
 import { ContentItem } from '../../models/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Button, Pill, ProviderBadge, WatchOfferButton } from '../components/ui';
 import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
@@ -28,9 +28,9 @@ type RouletteScreenProps = {
 const blindNodes = ['?', 'P', '?', 'S', '?', 'Y', '?', 'U'];
 
 export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl, onOpenTrailer }: RouletteScreenProps) {
-  const { width } = useWindowDimensions();
-  const compact = width < 760;
-  const wheelSize = Math.min(compact ? width - 52 : 390, 390);
+  const responsive = useResponsiveLayout();
+  const compact = responsive.width < 960;
+  const wheelSize = Math.min(compact ? responsive.width - (responsive.gutter * 2) : 390, 390);
   const rotation = useRef(new Animated.Value(0)).current;
   const [spinning, setSpinning] = useState(false);
   const [showSynopsis, setShowSynopsis] = useState(false);
@@ -53,7 +53,7 @@ export function RouletteScreen({ controller, savedIds, onSave, onOpen, onOpenUrl
   const noMatches = !controller.loading && controller.recommendations.length === 0;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.rouletteContent} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.rouletteContent, responsive.isPhone && styles.screenContentPhone, responsive.isTablet && styles.screenContentTablet, { paddingHorizontal: responsive.gutter, paddingTop: responsive.contentTop }]} showsVerticalScrollIndicator={false}>
       <View style={[styles.rouletteHeader, compact && styles.rouletteHeaderCompact]}>
         <PageTitle
           eyebrow="ELECCIÓN A CIEGAS"

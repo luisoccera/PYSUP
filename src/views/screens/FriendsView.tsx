@@ -3,6 +3,7 @@ import { ImageBackground, Pressable, ScrollView, Text, TextInput, View } from 'r
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { FriendsControllerState } from '../../controllers/useFriendsController';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { catalogue } from '../../models/catalogue';
 import { ChatMessage, Friend } from '../../models/types';
 import { Avatar, Button, IconButton, SectionTitle } from '../components/ui';
@@ -68,13 +69,14 @@ function MessageBubble({ message, friend }: { message: ChatMessage; friend: Frie
 }
 
 function ModeTabs({ controller }: { controller: FriendsControllerState }) {
+  const responsive = useResponsiveLayout();
   return (
-    <View style={styles.friendsModeTabs}>
-      <Pressable onPress={() => controller.setMode('messages')} style={[styles.friendsModeTab, controller.mode === 'messages' && styles.friendsModeTabActive]}>
+    <View style={[styles.friendsModeTabs, responsive.isPhone && styles.friendsModeTabsPhone]}>
+      <Pressable onPress={() => controller.setMode('messages')} style={[styles.friendsModeTab, responsive.isPhone && styles.friendsModeTabPhone, controller.mode === 'messages' && styles.friendsModeTabActive]}>
         <Feather name="message-circle" size={16} color={controller.mode === 'messages' ? colors.ink : colors.textMuted} />
         <Text style={[styles.friendsModeText, controller.mode === 'messages' && styles.friendsModeTextActive]}>Mensajes</Text>
       </Pressable>
-      <Pressable onPress={() => controller.setMode('room')} style={[styles.friendsModeTab, controller.mode === 'room' && styles.friendsModeTabActive]}>
+      <Pressable onPress={() => controller.setMode('room')} style={[styles.friendsModeTab, responsive.isPhone && styles.friendsModeTabPhone, controller.mode === 'room' && styles.friendsModeTabActive]}>
         <Feather name="video" size={16} color={controller.mode === 'room' ? colors.ink : colors.textMuted} />
         <Text style={[styles.friendsModeText, controller.mode === 'room' && styles.friendsModeTextActive]}>Sala simultánea</Text>
       </Pressable>
@@ -83,17 +85,16 @@ function ModeTabs({ controller }: { controller: FriendsControllerState }) {
 }
 
 function DirectMessages({ controller }: { controller: FriendsControllerState }) {
+  const responsive = useResponsiveLayout();
   const friend = controller.activeFriend;
   if (!friend) return <View style={styles.chatEmpty}><Feather name="users" size={28} color={colors.textDim} /><Text style={styles.chatEmptyTitle}>Agrega un amigo para conversar</Text></View>;
 
   return (
     <View style={styles.directChat}>
-      <View style={styles.directChatHeader}>
+      <View style={[styles.directChatHeader, responsive.isPhone && styles.directChatHeaderPhone]}>
         <Avatar initials={friend.initials} size={46} color={friend.color} online={friend.online} />
         <View style={styles.directChatHeaderCopy}><Text style={styles.directChatName}>{friend.name}</Text><Text style={styles.directChatPresence}>{friend.online ? 'En línea ahora' : 'Responderá cuando vuelva'}</Text></View>
-        <Pressable accessibilityLabel={`Invitar a ${friend.name} a una sala`} onPress={() => { if (!controller.selectedRoomIds.includes(friend.id)) controller.toggleRoomParticipant(friend.id); controller.setMode('room'); }} style={styles.videoInviteButton}><Feather name="video" size={18} color={colors.lime} /></Pressable>
-        <IconButton icon="user-x" label={`Eliminar amistad con ${friend.name}`} onPress={controller.removeActiveFriend} />
-        <IconButton icon="slash" label={`Bloquear a ${friend.name}`} onPress={controller.blockActiveFriend} />
+        <View style={[styles.directChatHeaderActions, responsive.isPhone && styles.directChatHeaderActionsPhone]}><Pressable accessibilityLabel={`Invitar a ${friend.name} a una sala`} onPress={() => { if (!controller.selectedRoomIds.includes(friend.id)) controller.toggleRoomParticipant(friend.id); controller.setMode('room'); }} style={styles.videoInviteButton}><Feather name="video" size={18} color={colors.lime} /></Pressable><IconButton icon="user-x" label={`Eliminar amistad con ${friend.name}`} onPress={controller.removeActiveFriend} /><IconButton icon="slash" label={`Bloquear a ${friend.name}`} onPress={controller.blockActiveFriend} /></View>
       </View>
       <ScrollView style={styles.directMessagesScroll} contentContainerStyle={styles.directMessagesContent} showsVerticalScrollIndicator={false}>
         {!controller.activeDirectMessages.length ? (
@@ -134,6 +135,7 @@ function RoomChat({ controller }: { controller: FriendsControllerState }) {
 }
 
 function SimultaneousRoom({ controller }: { controller: FriendsControllerState }) {
+  const responsive = useResponsiveLayout();
   if (!controller.roomActive) {
     return (
       <View style={styles.roomEmpty}>
@@ -150,11 +152,11 @@ function SimultaneousRoom({ controller }: { controller: FriendsControllerState }
 
   return (
     <View style={styles.activeRoom}>
-      <View style={styles.activeRoomTop}><View><Text style={styles.roomKicker}>SALA PRIVADA · {controller.selectedRoomIds.length + 1} PERSONAS</Text><Text style={styles.activeRoomTitle}>{controller.roomTitle}</Text><Text selectable style={styles.roomInviteLink}>pysup://room/{controller.roomInviteCode}</Text></View><View style={styles.livePill}><View style={styles.liveSmall} /><Text style={styles.liveText}>EN LÍNEA</Text></View></View>
+      <View style={[styles.activeRoomTop, responsive.isPhone && styles.activeRoomTopPhone]}><View><Text style={styles.roomKicker}>SALA PRIVADA · {controller.selectedRoomIds.length + 1} PERSONAS</Text><Text style={styles.activeRoomTitle}>{controller.roomTitle}</Text><Text selectable style={styles.roomInviteLink}>pysup://room/{controller.roomInviteCode}</Text></View><View style={styles.livePill}><View style={styles.liveSmall} /><Text style={styles.liveText}>EN LÍNEA</Text></View></View>
       <ImageBackground source={catalogue[0].image} style={styles.roomPlayer} imageStyle={styles.roomPlayerRadius}>
         <LinearGradient colors={['rgba(7,10,18,0.2)', 'rgba(7,10,18,0.9)']} style={styles.roomPlayerOverlay}>
           <Pressable disabled={!controller.roomCanControl} accessibilityLabel={controller.roomCanControl ? (controller.playing ? 'Pausar para todos' : 'Reproducir para todos') : 'Sólo el anfitrión puede controlar la reproducción'} onPress={controller.togglePlaying} style={[styles.playButton, !controller.roomCanControl && { opacity: 0.5 }]}><Feather name={controller.playing ? 'pause' : 'play'} size={28} color={colors.ink} /></Pressable>
-          <View style={styles.playerBottom}><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.min(100, (controller.seconds / 7200) * 100)}%` }]} /></View><View style={styles.timeRow}><Text style={styles.timeText}>{formatTime(controller.seconds)}</Text><Text style={styles.syncText}><Feather name="link" size={12} color={colors.success} /> Reloj de sala</Text><Text style={styles.timeText}>cada cuenta reproduce en su plataforma</Text></View></View>
+          <View style={styles.playerBottom}><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.min(100, (controller.seconds / 7200) * 100)}%` }]} /></View><View style={[styles.timeRow, responsive.isPhone && styles.timeRowPhone]}><Text style={styles.timeText}>{formatTime(controller.seconds)}</Text><Text style={styles.syncText}><Feather name="link" size={12} color={colors.success} /> Reloj de sala</Text><Text style={styles.timeText}>cada cuenta reproduce en su plataforma</Text></View></View>
         </LinearGradient>
       </ImageBackground>
       <View style={styles.playerControls}><IconButton icon="rotate-ccw" label="Retroceder 10 segundos" onPress={controller.rewind} /><Button label={controller.roomCanControl ? (controller.playing ? 'Pausar para todos' : 'Reproducir para todos') : 'Controlado por el anfitrión'} icon={controller.playing ? 'pause' : 'play'} disabled={!controller.roomCanControl} onPress={controller.togglePlaying} style={styles.playerMainControl} /><IconButton icon="rotate-cw" label="Avanzar 10 segundos" onPress={controller.forward} /></View>
@@ -165,19 +167,20 @@ function SimultaneousRoom({ controller }: { controller: FriendsControllerState }
 }
 
 export function FriendsScreen({ controller }: { controller: FriendsControllerState }) {
+  const responsive = useResponsiveLayout();
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.screenContent, responsive.isPhone && styles.screenContentPhone, responsive.isTablet && styles.screenContentTablet, { paddingHorizontal: responsive.gutter, paddingTop: responsive.contentTop }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <PageTitle eyebrow="TU CÍRCULO" title="Amigos, mensajes y salas" description="Conversa con tus amigos o invítalos a una función sincronizada con chat para todos." />
       <ModeTabs controller={controller} />
       <View style={styles.friendsLayout}>
-        <View style={styles.friendsPanel}>
+        <View style={[styles.friendsPanel, responsive.isPhone && styles.friendsPanelPhone]}>
           <SectionTitle title={controller.mode === 'messages' ? 'Tus conversaciones' : 'Invitar a la sala'} />
-          {!!controller.friendRequests.length && <View style={styles.suggestionCard}><Text style={styles.suggestionLabel}>SOLICITUDES DE AMISTAD</Text>{controller.friendRequests.map((request) => <View key={request.id} style={[styles.suggestedFriendRow, controller.focusedRequestId === request.id && styles.friendRowSelected]}><Avatar initials={request.name.slice(0, 2).toUpperCase()} size={44} color="#5E4EA1" /><View style={styles.friendCopy}><Text style={styles.friendName}>{request.name}</Text><Text style={styles.friendStatus}>@{request.username}</Text></View><Button label="Rechazar" compact variant="ghost" onPress={() => controller.respondFriendRequest(request.id, false)} /><Button label="Aceptar" compact onPress={() => controller.respondFriendRequest(request.id, true)} /></View>)}</View>}
+          {!!controller.friendRequests.length && <View style={styles.suggestionCard}><Text style={styles.suggestionLabel}>SOLICITUDES DE AMISTAD</Text>{controller.friendRequests.map((request) => <View key={request.id} style={[styles.suggestedFriendRow, responsive.isPhone && styles.suggestedFriendRowPhone, controller.focusedRequestId === request.id && styles.friendRowSelected]}><Avatar initials={request.name.slice(0, 2).toUpperCase()} size={44} color="#5E4EA1" /><View style={styles.friendCopy}><Text style={styles.friendName}>{request.name}</Text><Text style={styles.friendStatus}>@{request.username}</Text></View><Button label="Rechazar" compact variant="ghost" onPress={() => controller.respondFriendRequest(request.id, false)} /><Button label="Aceptar" compact onPress={() => controller.respondFriendRequest(request.id, true)} /></View>)}</View>}
           <View style={styles.searchBox}><Feather name="search" size={17} color={colors.textDim} /><TextInput value={controller.query} onChangeText={controller.setQuery} placeholder="Buscar por nombre o @usuario" placeholderTextColor={colors.textDim} style={styles.searchInput} /></View>
           <View style={styles.friendList}>{controller.filteredFriends.map((friend) => <FriendRow key={friend.id} friend={friend} active={controller.activeFriendId === friend.id} roomSelected={controller.selectedRoomIds.includes(friend.id)} roomMode={controller.mode === 'room'} onOpen={() => controller.openConversation(friend.id)} onRoomToggle={() => controller.toggleRoomParticipant(friend.id)} />)}</View>
-          {controller.showSuggestion && <View style={styles.suggestionCard}><Text style={styles.suggestionLabel}>RESULTADO DE BÚSQUEDA</Text><View style={styles.suggestedFriendRow}><Avatar initials={controller.suggestedFriend.initials} size={48} color={controller.suggestedFriend.color} online /><View style={styles.friendCopy}><Text style={styles.friendName}>{controller.suggestedFriend.name}</Text><Text style={styles.friendStatus}>{controller.suggestedFriend.handle}</Text></View><Button label="Enviar solicitud" icon="user-plus" compact onPress={controller.addSuggestedFriend} /></View></View>}
+          {controller.showSuggestion && <View style={styles.suggestionCard}><Text style={styles.suggestionLabel}>RESULTADO DE BÚSQUEDA</Text><View style={[styles.suggestedFriendRow, responsive.isPhone && styles.suggestedFriendRowPhone]}><Avatar initials={controller.suggestedFriend.initials} size={48} color={controller.suggestedFriend.color} online /><View style={styles.friendCopy}><Text style={styles.friendName}>{controller.suggestedFriend.name}</Text><Text style={styles.friendStatus}>{controller.suggestedFriend.handle}</Text></View><Button label="Enviar solicitud" icon="user-plus" compact onPress={controller.addSuggestedFriend} /></View></View>}
         </View>
-        <View style={[styles.roomPanel, controller.mode === 'messages' && styles.messagePanel]}>{controller.mode === 'messages' ? <DirectMessages controller={controller} /> : <SimultaneousRoom controller={controller} />}</View>
+        <View style={[styles.roomPanel, responsive.isPhone && styles.roomPanelPhone, controller.mode === 'messages' && styles.messagePanel]}>{controller.mode === 'messages' ? <DirectMessages controller={controller} /> : <SimultaneousRoom controller={controller} />}</View>
       </View>
     </ScrollView>
   );

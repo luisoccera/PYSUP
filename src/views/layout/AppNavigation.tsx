@@ -1,8 +1,10 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { countries } from '../../models/catalogue';
 import { ProviderId, TabId } from '../../models/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Avatar, IconButton, IconName, Logo, ProviderBadge } from '../components/ui';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
@@ -17,11 +19,12 @@ export const navItems: { id: TabId; label: string; icon: IconName }[] = [
 ];
 
 export function AppHeader({ name, country, notificationCount, onNotifications, onProfile, onSettings }: { name: string; country: string; notificationCount: number; onNotifications: () => void; onProfile: () => void; onSettings: () => void }) {
+  const { isPhone, isCompactPhone } = useResponsiveLayout();
   const selectedCountry = countries.find((item) => item.code === country);
   return (
-    <View style={styles.appHeader}>
+    <View style={[styles.appHeader, isPhone && styles.appHeaderPhone]}>
       <View style={styles.headerContext}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Cambiar país" onPress={onSettings} style={({ pressed }) => [styles.locationChip, pressed && styles.headerPressed]}><Text style={styles.locationFlag}>{selectedCountry?.code}</Text><Text style={styles.locationText}>{selectedCountry?.name}</Text><Feather name="chevron-down" size={13} color={colors.textMuted} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cambiar país" onPress={onSettings} style={({ pressed }) => [styles.locationChip, pressed && styles.headerPressed]}><Text style={styles.locationFlag}>{selectedCountry?.code}</Text>{!isCompactPhone && <Text numberOfLines={1} style={styles.locationText}>{selectedCountry?.name}</Text>}<Feather name="chevron-down" size={13} color={colors.textMuted} /></Pressable>
       </View>
       <View style={styles.headerActions}>
         <IconButton icon="bell" label={`Notificaciones${notificationCount ? `, ${notificationCount} ${notificationCount === 1 ? 'nueva' : 'nuevas'}` : ''}`} onPress={onNotifications} badge={notificationCount > 0} />
@@ -56,12 +59,14 @@ export function Sidebar({ active, onSelect, onLogout, connected }: { active: Tab
 }
 
 export function MobileNav({ active, onSelect }: { active: TabId; onSelect: (tab: TabId) => void }) {
+  const insets = useSafeAreaInsets();
+  const { isCompactPhone } = useResponsiveLayout();
   return (
-    <View style={styles.mobileNav}>
+    <View style={[styles.mobileNav, { height: 64 + insets.bottom, paddingBottom: Math.max(insets.bottom, 5) }]}>
       {navItems.map((item) => (
         <Pressable key={item.id} onPress={() => onSelect(item.id)} style={styles.mobileNavItem}>
-          <View style={[styles.mobileNavIcon, active === item.id && styles.mobileNavIconActive]}><Feather name={item.icon} size={20} color={active === item.id ? colors.ink : colors.textDim} /></View>
-          <Text style={[styles.mobileNavLabel, active === item.id && styles.mobileNavLabelActive]}>{item.label}</Text>
+          <View style={[styles.mobileNavIcon, active === item.id && styles.mobileNavIconActive]}><Feather name={item.icon} size={isCompactPhone ? 18 : 20} color={active === item.id ? colors.ink : colors.textDim} /></View>
+          <Text numberOfLines={1} style={[styles.mobileNavLabel, active === item.id && styles.mobileNavLabelActive]}>{isCompactPhone && item.id === 'discover' ? 'Explorar' : item.label}</Text>
         </Pressable>
       ))}
     </View>
@@ -69,10 +74,11 @@ export function MobileNav({ active, onSelect }: { active: TabId; onSelect: (tab:
 }
 
 export function PageTitle({ eyebrow, title, description }: { eyebrow?: string; title: string; description?: string }) {
+  const { isPhone, isCompactPhone } = useResponsiveLayout();
   return (
     <View style={styles.pageTitleWrap}>
       {eyebrow && <Text style={styles.pageEyebrow}>{eyebrow}</Text>}
-      <Text style={styles.pageTitle}>{title}</Text>
+      <Text style={[styles.pageTitle, isPhone && styles.pageTitlePhone, isCompactPhone && styles.pageTitleCompactPhone]}>{title}</Text>
       {description && <Text style={styles.pageDescription}>{description}</Text>}
     </View>
   );

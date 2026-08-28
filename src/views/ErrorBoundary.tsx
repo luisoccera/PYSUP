@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from './styles/theme';
 
 type State = { error: Error | null };
@@ -18,14 +19,14 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Stat
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <View style={styles.page}>
+      <SafeAreaView style={styles.page}>
         <Text style={styles.mark}>P</Text>
         <Text style={styles.title}>PYSUP necesita recuperarse</Text>
         <Text style={styles.body}>La pantalla encontró un error inesperado. Tus datos remotos no se modificaron.</Text>
         <Pressable accessibilityRole="button" onPress={() => this.setState({ error: null })} style={styles.button}>
           <Text style={styles.buttonText}>Intentar de nuevo</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 }

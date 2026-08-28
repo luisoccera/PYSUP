@@ -4,5 +4,5 @@ import { AppController } from './src/controllers/AppController';
 import { ErrorBoundary } from './src/views/ErrorBoundary';
 
 export default function App() {
-  return <ErrorBoundary><SafeAreaProvider><AppController /></SafeAreaProvider></ErrorBoundary>;
+  return <SafeAreaProvider><ErrorBoundary><AppController /></ErrorBoundary></SafeAreaProvider>;
 }

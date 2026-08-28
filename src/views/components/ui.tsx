@@ -14,6 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ContentItem, ProviderId, WatchOffer } from '../../models/types';
 import { providers } from '../../models/catalogue';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { colors } from '../styles/theme';
 import { styles } from '../styles/uiStyles';
 
@@ -182,6 +183,8 @@ export function SwipeDeck({ item, nextItem, onAction, onOpen }: {
   onAction: (action: SwipeAction, item: ContentItem) => void;
   onOpen: (item: ContentItem) => void;
 }) {
+  const responsive = useResponsiveLayout();
+  const cardHeight = responsive.isPhone ? 560 : 620;
   const pan = useRef(new Animated.ValueXY()).current;
   const locked = useRef(false);
 
@@ -216,23 +219,23 @@ export function SwipeDeck({ item, nextItem, onAction, onOpen }: {
   }), [item.id]);
 
   return (
-    <View style={styles.deckWrap}>
+    <View style={[styles.deckWrap, responsive.isPhone && styles.deckWrapPhone]}>
       {nextItem && (
-        <View style={[styles.swipeCard, styles.nextCard]}>
+        <View style={[styles.swipeCard, styles.nextCard, { height: cardHeight }]}>
           <ImageBackground source={nextItem.image} style={styles.swipeImage} imageStyle={styles.swipeImageRadius} />
         </View>
       )}
-      <Animated.View {...responder.panHandlers} style={[styles.swipeCard, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] }]}>
+      <Animated.View {...responder.panHandlers} style={[styles.swipeCard, { height: cardHeight, transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] }]}>
         <Pressable onPress={() => onOpen(item)} style={styles.swipePressable}>
           <ImageBackground source={item.image} style={styles.swipeImage} imageStyle={styles.swipeImageRadius}>
-            <LinearGradient colors={['rgba(7,10,18,0.05)', 'rgba(7,10,18,0.12)', 'rgba(7,10,18,0.98)']} locations={[0, 0.48, 1]} style={styles.swipeGradient}>
+            <LinearGradient colors={['rgba(7,10,18,0.05)', 'rgba(7,10,18,0.12)', 'rgba(7,10,18,0.98)']} locations={[0, 0.48, 1]} style={[styles.swipeGradient, responsive.isPhone && styles.swipeGradientPhone]}>
               <View style={styles.swipeTopRow}>
                 <View style={styles.matchBig}><Text style={styles.matchBigValue}>{item.match}%</Text><Text style={styles.matchBigLabel}>MATCH</Text></View>
                 <View style={styles.providerRow}>{item.providers.map((id) => <ProviderBadge key={id} id={id} compact />)}</View>
               </View>
               <View style={styles.swipeCopy}>
                 <Text style={styles.swipeType}>{item.type.toUpperCase()} · {item.year}</Text>
-                <Text style={styles.swipeTitle}>{item.title}</Text>
+                <Text style={[styles.swipeTitle, responsive.isPhone && styles.swipeTitlePhone]}>{item.title}</Text>
                 <Text style={styles.swipeSubtitle}>{item.subtitle}</Text>
                 <View style={styles.metaRow}>
                   <View style={styles.rating}><Feather name="star" size={15} color={colors.yellow} /><Text style={styles.ratingText}>{item.score}</Text></View>

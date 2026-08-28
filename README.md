@@ -19,7 +19,7 @@ src/controllers/          estado y coordinación de flujos
 src/views/                presentación multiplataforma
 src/services/             repositorios tipados; único acceso del cliente a Supabase
 src/repositories/         punto de entrada estable de repositorios por dominio
-src/hooks/                conectividad y estado compartido de plataforma
+src/hooks/                conectividad, breakpoints y estado compartido de plataforma
 src/config/               variables públicas y guardas de configuración
 src/utils/                validación, sanitización y errores
 supabase/migrations/      esquema, funciones, índices, triggers, RLS y seed
@@ -65,4 +65,4 @@ npm run test:e2e:web
 - Las salas se recuperan al reconectar, admiten código o enlace `pysup://room/CODIGO` y reservan el control de reproducción al anfitrión o moderador.
 - El procesamiento de clips se delega a un worker HTTP protegido. Sin worker configurado se muestra un error recuperable y no se inventan candidatos.
 
-Consulta [README_SETUP.md](README_SETUP.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/TERMS.md](docs/TERMS.md) y [docs/CLIP_ANALYSIS.md](docs/CLIP_ANALYSIS.md).
+Consulta [README_SETUP.md](README_SETUP.md), [docs/RESPONSIVE.md](docs/RESPONSIVE.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/TERMS.md](docs/TERMS.md) y [docs/CLIP_ANALYSIS.md](docs/CLIP_ANALYSIS.md).

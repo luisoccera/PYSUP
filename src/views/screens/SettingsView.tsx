@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'rea
 import { Feather } from '@expo/vector-icons';
 import { countries, providers } from '../../models/catalogue';
 import { AppPreferences, PreferenceKey, ProviderId } from '../../models/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Avatar, Button, IconName, ProviderBadge, SectionTitle } from '../components/ui';
 import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
@@ -39,6 +40,7 @@ type SettingsProps = {
 };
 
 export function SettingsScreen({ name, username, avatarUrl, country, connected, preferences, blockedUsers, onPreferenceChange, onCountryChange, onConnect, onProfile, onLogout, onLogoutAll, onDownloadData, onChangePassword, onDeleteAccount, onUnblock }: SettingsProps) {
+  const responsive = useResponsiveLayout();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [blocksOpen, setBlocksOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -56,11 +58,11 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.screenContent, responsive.isPhone && styles.screenContentPhone, responsive.isTablet && styles.screenContentTablet, { paddingHorizontal: responsive.gutter, paddingTop: responsive.contentTop }]} showsVerticalScrollIndicator={false}>
       <PageTitle eyebrow="PREFERENCIAS DE PYSUP" title="Configuración" description="Administra tu cuenta, región, servicios conectados y la forma en que PYSUP se adapta a ti." />
 
       <View style={styles.settingsGrid}>
-        <View style={styles.settingsMain}>
+        <View style={[styles.settingsMain, responsive.isPhone && styles.settingsColumnPhone]}>
           <View style={styles.settingsSection}>
             <SectionTitle eyebrow="CUENTA" title="Tu identidad" />
             <Pressable onPress={onProfile} style={({ pressed }) => [styles.accountSettingCard, pressed && styles.cardPressed]}>
@@ -74,7 +76,7 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
             <SectionTitle eyebrow="REGIÓN" title="Catálogo de tu país" />
             <Text style={styles.settingsHelp}>Las recomendaciones y la disponibilidad se comprobarán siempre para el país seleccionado.</Text>
             <View style={styles.settingsCountryGrid}>{countries.map((item) => (
-              <Pressable key={item.code} onPress={() => onCountryChange(item.code)} style={[styles.settingsCountry, country === item.code && styles.settingsCountryActive]}>
+              <Pressable key={item.code} onPress={() => onCountryChange(item.code)} style={[styles.settingsCountry, responsive.isPhone && styles.settingsCountryPhone, country === item.code && styles.settingsCountryActive]}>
                 <View style={styles.countryCodeBox}><Text style={styles.countryCodeText}>{item.code}</Text></View>
                 <Text style={[styles.settingsCountryName, country === item.code && styles.settingsCountryNameActive]}>{item.name}</Text>
                 {country === item.code && <Feather name="check-circle" size={17} color={colors.lime} />}
@@ -97,7 +99,7 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
           </View>
         </View>
 
-        <View style={styles.settingsSide}>
+        <View style={[styles.settingsSide, responsive.isPhone && styles.settingsColumnPhone]}>
           <View style={styles.settingsSection}>
             <SectionTitle eyebrow="STREAMING" title="Plataformas conectadas" />
             <Text style={styles.settingsHelp}>Estas opciones son selecciones manuales hasta que cada proveedor ofrezca una autorización oficial compatible.</Text>
@@ -125,7 +127,7 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
       </View>
 
       <Modal transparent visible={passwordOpen} animationType="fade" onRequestClose={() => setPasswordOpen(false)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <Text style={styles.modalEyebrow}>SEGURIDAD</Text><Text style={styles.modalTitle}>Nueva contraseña</Text>
           <Text style={styles.inputLabel}>Contraseña</Text><TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" placeholder="Mínimo 8 caracteres" placeholderTextColor={colors.textDim} style={styles.modalInput} />
           {!!passwordError && <Text style={{ color: colors.coral }}>{passwordError}</Text>}
@@ -134,7 +136,7 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
       </Modal>
 
       <Modal transparent visible={blocksOpen} animationType="fade" onRequestClose={() => setBlocksOpen(false)}>
-        <View style={styles.modalBackdrop}><View style={styles.composeModal}>
+        <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <Text style={styles.modalEyebrow}>PRIVACIDAD</Text><Text style={styles.modalTitle}>Usuarios bloqueados</Text>
           {blockedUsers.length ? blockedUsers.map((user) => <View key={user.id} style={styles.connectionRow}><Avatar initials={user.name.slice(0, 2).toUpperCase()} /><View style={styles.connectionCopy}><Text style={styles.connectionName}>{user.name}</Text><Text style={styles.connectionStatus}>@{user.username}</Text></View><Button label="Desbloquear" compact variant="ghost" onPress={() => onUnblock(user.id)} /></View>) : <Text style={styles.settingsHelp}>No tienes usuarios bloqueados.</Text>}
           <Button label="Cerrar" variant="secondary" onPress={() => setBlocksOpen(false)} />

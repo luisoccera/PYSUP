@@ -3,12 +3,14 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ClipFinderController } from '../../controllers/ClipFinderController';
 import { ContentItem } from '../../models/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Pill, SwipeDeck } from '../components/ui';
 import { PageTitle } from '../layout/AppNavigation';
 import { colors } from '../styles/theme';
 import { mainStyles as styles } from '../styles/mainStyles';
 
 export function DiscoverScreen({ country, wifiOnly, items, onOpen, liked, saved, onAction }: { country: string; wifiOnly: boolean; items: ContentItem[]; onOpen: (item: ContentItem) => void; liked: string[]; saved: string[]; onAction: (action: 'pass' | 'like' | 'save', id: string) => void }) {
+  const responsive = useResponsiveLayout();
   const [mode, setMode] = useState<'recommendations' | 'identify'>('recommendations');
   const [filter, setFilter] = useState('Todo');
   const [index, setIndex] = useState(0);
@@ -30,14 +32,14 @@ export function DiscoverScreen({ country, wifiOnly, items, onOpen, liked, saved,
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.discoverContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.discoverHeader}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.discoverContent, responsive.isPhone && styles.screenContentPhone, responsive.isTablet && styles.screenContentTablet, { paddingHorizontal: responsive.gutter, paddingTop: responsive.contentTop }]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.discoverHeader, responsive.isPhone && styles.discoverHeaderPhone]}>
         <PageTitle eyebrow="DESCUBRE SIN PERDER TIEMPO" title={mode === 'recommendations' ? 'Desliza y afina tu gusto' : 'Encuentra una historia desde un clip'} description={mode === 'recommendations' ? 'Izquierda para pasar, arriba para guardar y derecha para decir que te gusta.' : 'Pega un reel, TikTok, publicación de X o sube un fragmento para identificar el título y dónde verlo.'} />
         {mode === 'recommendations' && <View style={styles.discoverCounter}><Text style={styles.discoverCounterValue}>{liked.length + saved.length}</Text><Text style={styles.discoverCounterLabel}>señales hoy</Text></View>}
       </View>
-      <View style={styles.discoverModeTabs}>
-        <Pressable onPress={() => setMode('recommendations')} style={[styles.discoverModeTab, mode === 'recommendations' && styles.discoverModeTabActive]}><Feather name="layers" size={16} color={mode === 'recommendations' ? colors.ink : colors.textMuted} /><Text style={[styles.discoverModeText, mode === 'recommendations' && styles.discoverModeTextActive]}>Recomendaciones</Text></Pressable>
-        <Pressable onPress={() => setMode('identify')} style={[styles.discoverModeTab, mode === 'identify' && styles.discoverModeTabActive]}><Feather name="video" size={16} color={mode === 'identify' ? colors.ink : colors.textMuted} /><Text style={[styles.discoverModeText, mode === 'identify' && styles.discoverModeTextActive]}>Buscar por clip o enlace</Text><View style={styles.newBadge}><Text style={styles.newBadgeText}>NUEVO</Text></View></Pressable>
+      <View style={[styles.discoverModeTabs, responsive.isPhone && styles.discoverModeTabsPhone]}>
+        <Pressable onPress={() => setMode('recommendations')} style={[styles.discoverModeTab, responsive.isPhone && styles.discoverModeTabPhone, mode === 'recommendations' && styles.discoverModeTabActive]}><Feather name="layers" size={16} color={mode === 'recommendations' ? colors.ink : colors.textMuted} /><Text numberOfLines={1} style={[styles.discoverModeText, mode === 'recommendations' && styles.discoverModeTextActive]}>Recomendaciones</Text></Pressable>
+        <Pressable onPress={() => setMode('identify')} style={[styles.discoverModeTab, responsive.isPhone && styles.discoverModeTabPhone, mode === 'identify' && styles.discoverModeTabActive]}><Feather name="video" size={16} color={mode === 'identify' ? colors.ink : colors.textMuted} /><Text numberOfLines={1} style={[styles.discoverModeText, mode === 'identify' && styles.discoverModeTextActive]}>Buscar por clip</Text><View style={styles.newBadge}><Text style={styles.newBadgeText}>NUEVO</Text></View></Pressable>
       </View>
       {mode === 'recommendations' ? (
         <>

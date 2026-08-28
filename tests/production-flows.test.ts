@@ -83,7 +83,12 @@ describe('flujos de producción PYSUP', () => {
     const app = JSON.parse(read('app.json')).expo;
     expect(app.scheme).toBe('pysup');
     expect(app.android.package).toBe('app.pysup.mobile');
+    expect(app.android.softwareKeyboardLayoutMode).toBe('resize');
     expect(app.ios.bundleIdentifier).toBe('app.pysup.mobile');
+    expect(app.ios.supportsTablet).toBe(true);
+    expect(app.ios.requireFullScreen).toBe(false);
+    const imagePicker = app.plugins.find((plugin: unknown) => Array.isArray(plugin) && plugin[0] === 'expo-image-picker');
+    expect(imagePicker?.[1]).toMatchObject({ cameraPermission: false, microphonePermission: false });
     const eas = JSON.parse(read('eas.json'));
     expect(Object.keys(eas.build)).toEqual(expect.arrayContaining(['development', 'preview', 'production']));
   });

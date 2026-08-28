@@ -9,8 +9,10 @@ export const styles = StyleSheet.create({
   introGridCompact: { flexDirection: 'column' },
 
   finderCard: { flex: 1.45, backgroundColor: colors.panel, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.line, padding: spacing.lg, ...shadow },
+  finderCardPhone: { padding: 16 },
 
   finderHeader: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  finderHeaderPhone: { flexWrap: 'wrap' },
 
   finderIcon: { width: 50, height: 50, borderRadius: 17, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
 
@@ -21,6 +23,7 @@ export const styles = StyleSheet.create({
   finderTitle: { color: colors.text, fontSize: 22, lineHeight: 27, fontWeight: '900', marginTop: 3 },
 
   demoBadge: { backgroundColor: 'rgba(111,168,255,0.1)', borderWidth: 1, borderColor: 'rgba(111,168,255,0.3)', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 5 },
+  demoBadgePhone: { marginLeft: 63 },
 
   demoBadgeText: { color: colors.blue, fontSize: 8, fontWeight: '900', letterSpacing: 1 },
 
@@ -91,7 +94,8 @@ export const styles = StyleSheet.create({
 
   signalText: { color: colors.textMuted, fontSize: 9 },
 
-  howCard: { flex: 0.72, minWidth: 270, backgroundColor: colors.panel, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.line, padding: spacing.lg },
+  howCard: { flex: 0.72, minWidth: 0, backgroundColor: colors.panel, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.line, padding: spacing.lg },
+  howCardPhone: { padding: 16 },
 
   howEyebrow: { color: colors.lime, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
 
@@ -120,6 +124,7 @@ export const styles = StyleSheet.create({
   resultSection: { marginTop: 24 },
 
   resultHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, marginBottom: 14 },
+  resultHeadingPhone: { alignItems: 'flex-start', flexWrap: 'wrap' },
 
   resultEyebrow: { color: colors.lime, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
 
@@ -142,10 +147,12 @@ export const styles = StyleSheet.create({
   confidenceLabel: { color: colors.ink, fontSize: 7, fontWeight: '900', letterSpacing: 0.8 },
 
   resultCopy: { flex: 1, padding: spacing.lg },
+  resultCopyPhone: { padding: 16 },
 
   resultType: { color: colors.lime, fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
 
   resultTitle: { color: colors.text, fontSize: 32, lineHeight: 36, fontWeight: '900', letterSpacing: -1, marginTop: 5 },
+  resultTitlePhone: { fontSize: 27, lineHeight: 31 },
 
   resultSubtitle: { color: colors.textMuted, fontSize: 12, fontWeight: '700', marginTop: 4 },
 

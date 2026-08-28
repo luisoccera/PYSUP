@@ -8,12 +8,13 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AuthControllerState } from '../../controllers/useAuthController';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Button, Logo } from '../components/ui';
 import { authStyles } from '../styles/authStyles';
 import { colors } from '../styles/theme';
@@ -62,8 +63,8 @@ function Field({ label, value, onChangeText, placeholder, icon, secure, error, k
 }
 
 export function AuthView({ controller }: { controller: AuthControllerState }) {
-  const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const responsive = useResponsiveLayout();
+  const wide = responsive.width >= 900;
   const [legalOpen, setLegalOpen] = useState<'terms' | 'privacy' | null>(null);
   const {
     mode,
@@ -98,6 +99,7 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
 
   return (
     <LinearGradient colors={[colors.ink, '#10162A', '#131020']} style={authStyles.page}>
+      <SafeAreaView style={authStyles.page}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={authStyles.keyboard}>
         <ScrollView contentContainerStyle={[authStyles.scroll, wide && authStyles.scrollWide]} keyboardShouldPersistTaps="handled">
           {wide && (
@@ -199,6 +201,7 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
           <Button label="Cerrar" onPress={() => setLegalOpen(null)} />
         </View></View>
       </Modal>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
