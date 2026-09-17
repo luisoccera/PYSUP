@@ -89,6 +89,7 @@ export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
     removeCover,
     downloadMyData,
     changePassword,
+    requestPasswordCode,
     deleteAccount,
     blockedUsers,
     unblockUser,
@@ -200,6 +201,7 @@ export function MainView({ controller, onLogout, onLogoutAll }: MainViewProps) {
               onLogoutAll={onLogoutAll}
               onDownloadData={downloadMyData}
               onChangePassword={changePassword}
+              onRequestPasswordCode={requestPasswordCode}
               onDeleteAccount={deleteAccount}
               blockedUsers={blockedUsers}
               onUnblock={unblockUser}

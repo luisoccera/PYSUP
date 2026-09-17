@@ -21,7 +21,7 @@ supabase link --project-ref TU_PROJECT_REF
 supabase db push
 ```
 
-`supabase db push` aplica ambas migraciones de `supabase/migrations`: esquema/RLS/Storage/Realtime y catálogo demostrativo inicial.
+`supabase db push` aplica las migraciones de `supabase/migrations`: esquema/RLS/Storage/Realtime, catálogo demostrativo y endurecimiento de seguridad.
 
 4. Comprueba en el panel que RLS permanezca activado en todas las tablas públicas y que los buckets `profile-media` y `clip-uploads` sean privados.
 5. En **Authentication > URL Configuration** agrega:
@@ -45,6 +45,7 @@ EXPO_PUBLIC_SUPABASE_URL=https://TU_PROJECT_REF.supabase.co
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICA
 EXPO_PUBLIC_API_URL=https://TU_API_PUBLICA_OPCIONAL
 EXPO_PUBLIC_WEB_URL=https://TU_DOMINIO
+EXPO_PUBLIC_TURNSTILE_SITE_KEY=TU_SITE_KEY_PUBLICA
 EXPO_PUBLIC_DEMO_MODE=false
 ```
 
@@ -53,6 +54,8 @@ Si tu panel todavía muestra la clave pública legacy `anon`, puedes usar
 Nunca uses la clave `service_role` en variables `EXPO_PUBLIC_*`.
 
 Estas variables se incluyen en el bundle. Nunca pongas aquí `service_role`, secretos OAuth, tokens del worker o credenciales del catálogo.
+
+En **Authentication → Bot and Abuse Protection** activa Cloudflare Turnstile con su secret key. Configura una política de contraseña de al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos, y activa la comprobación de contraseñas filtradas cuando esté disponible. Replica en el panel alojado los límites de `supabase/config.toml`; ese archivo controla directamente el entorno local/autohospedado.
 
 ## 4. OAuth de Google y Apple
 
@@ -97,6 +100,9 @@ supabase secrets set EXPO_ACCESS_TOKEN=...
 supabase secrets set CATALOG_PROVIDER_URL=https://catalog.example.com/feed
 supabase secrets set CATALOG_PROVIDER_TOKEN=...
 supabase secrets set CATALOG_PROVIDER_NAME=proveedor-contratado
+supabase secrets set APP_ENV=production
+supabase secrets set ALLOWED_ORIGINS=https://TU_DOMINIO
+supabase secrets set SECURITY_HASH_SALT=VALOR_ALEATORIO_LARGO
 ```
 
 Supabase agrega automáticamente `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` a las funciones. Esa última sólo se usa dentro del servidor.
@@ -150,17 +156,22 @@ eas build --profile production --platform all
 npm run export:web
 ```
 
-Publica `dist/` en un host HTTPS con fallback de rutas a `index.html`. Agrega el dominio final a Auth Redirect URLs de Supabase y cambia `EXPO_PUBLIC_WEB_URL` antes del build.
+Publica `dist/` en un host HTTPS con fallback de rutas a `index.html`. `vercel.json` y `public/_headers` incluyen CSP, HSTS y las demás cabeceras; comprueba que tu host las conserve. Agrega el dominio final a Auth Redirect URLs de Supabase y cambia `EXPO_PUBLIC_WEB_URL` antes del build.
+
+Conserva como archivos estáticos reales `/auth/captcha.html` y `/auth/captcha.js` antes del fallback SPA. Autoriza el dominio en Turnstile. El flujo móvil usa el navegador del sistema, un estado aleatorio y `pysup://captcha/callback`; requiere un development build o una app EAS instalada, no Expo Go. Si usas un dominio personalizado de Supabase u otra API pública, agrega exclusivamente ese origen HTTPS/WSS a `connect-src` de `vercel.json` y `public/_headers`; no lo reemplaces por `https:` o `*`.
 
 ## 10. Pruebas locales
 
 ```bash
 npm install
 npm run typecheck
+npm run typecheck:server
 npm run lint
 npm run test
 npm run export:web
 npm run test:e2e:web
+npm run security
+npm run security:history
 ```
 
 Para probar sincronización real usa dos navegadores/perfiles o un móvil y navegador con dos cuentas confirmadas. Verifica mensajes, lectura, solicitudes, invitaciones, controles de sala y reconexión Realtime.
@@ -171,4 +182,11 @@ Validación local del esquema (requiere Docker Desktop):
 supabase start
 supabase db reset
 supabase db lint --local
+supabase test db
 ```
+
+`supabase/tests/security_rls.test.sql` prueba permisos administrativos, campos inmutables y separación de perfiles/preferencias/presencia entre usuarios. Estas pruebas requieren PostgreSQL/Supabase local con Docker; no quedan ejecutadas sólo por correr Vitest. Desactiva **Allow public access** en Realtime Settings del proyecto alojado para los canales privados de presencia. Prueba cuentas reales en dos dispositivos antes de publicar.
+
+Vitest sí ejecuta adicionalmente `tests/database-security.test.ts` en PostgreSQL embebido (PGlite), aplicando las migraciones completas y comprobando RLS, bloqueos, reseñas, salas, recomendaciones por país y permisos administrativos. El harness reproduce roles/namespaces para SQL; no sustituye Supabase Auth, Storage HTTP, Realtime ni las pruebas en dispositivos físicos.
+
+Consulta [docs/SECURITY.md](docs/SECURITY.md) para el mapa de los 20 controles, activación en producción y respuesta a incidentes.

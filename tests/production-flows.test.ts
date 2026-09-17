@@ -33,7 +33,7 @@ describe('flujos de producción PYSUP', () => {
   it('sincroniza favoritos, guardados y reseñas con entidades remotas', () => {
     const source = read('src/services/catalog/interactionRepository.ts');
     expect(source).toContain("type === 'like' ? 'favorites' : 'saved_items'");
-    expect(source).toContain("from('reviews').upsert");
+    expect(source).toContain("rpc('upsert_my_review'");
     expect(source).toContain("from('review_likes')");
   });
 

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { env } from '../config/env';
 import type { OnboardingResult, ProviderId } from '../models/types';
 import { authService } from '../services/auth/authService';
@@ -21,21 +22,27 @@ export function useAuthController(onDemo: () => Promise<void>) {
   const [info, setInfo] = useState<string | null>(null);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaVersion, setCaptchaVersion] = useState(0);
   const submitting = useRef(false);
+  const captchaRequired = Platform.OS === 'web' && Boolean(env.turnstileSiteKey);
 
   const errors = useMemo(() => {
     const next: Record<string, string> = {};
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) next.email = 'Ingresa un correo válido.';
-    if (password.length < 8) next.password = 'Usa al menos 8 caracteres.';
+    if (!password || password.length > 128) next.password = 'Ingresa tu contraseña.';
     if (mode === 'register') {
+      if (password.length < 12) next.password = 'Usa al menos 12 caracteres.';
+      else if (!/[a-záéíóúñ]/.test(password) || !/[A-ZÁÉÍÓÚÑ]/.test(password) || !/\d/.test(password)) next.password = 'Incluye mayúsculas, minúsculas y un número.';
       if (name.trim().length < 2) next.name = 'Escribe el nombre que verán tus amigos.';
       if (confirmPassword !== password) next.confirm = 'Las contraseñas no coinciden.';
       if (!acceptedTerms) next.accepted = 'Debes aceptar los términos para continuar.';
     }
+    if (captchaRequired && !captchaToken) next.captcha = 'Completa la verificación contra bots.';
     return next;
-  }, [acceptedTerms, confirmPassword, email, mode, name, password]);
+  }, [acceptedTerms, captchaRequired, captchaToken, confirmPassword, email, mode, name, password]);
 
-  const run = async (operation: () => Promise<void>) => {
+  const run = async (operation: () => Promise<void>, consumeCaptcha = false) => {
     if (submitting.current) return;
     submitting.current = true;
     setLoading(true);
@@ -46,6 +53,10 @@ export function useAuthController(onDemo: () => Promise<void>) {
     } catch (caught) {
       setError(toAppError(caught).message);
     } finally {
+      if (consumeCaptcha) {
+        setCaptchaToken(null);
+        setCaptchaVersion((current) => current + 1);
+      }
       submitting.current = false;
       setLoading(false);
     }
@@ -56,12 +67,12 @@ export function useAuthController(onDemo: () => Promise<void>) {
     if (Object.keys(errors).length > 0) return;
     void run(async () => {
       if (!isSupabaseConfigured) throw new Error('Configura Supabase en .env antes de iniciar sesión.');
-      if (mode === 'login') await authService.signIn(email, password, remember);
+      if (mode === 'login') await authService.signIn(email, password, remember, captchaToken ?? undefined);
       else {
-        const result = await authService.signUp(name, email, password);
+        const result = await authService.signUp(name, email, password, captchaToken ?? undefined);
         if (result.requiresEmailConfirmation) setInfo('Cuenta creada. Revisa tu correo para confirmar el acceso.');
       }
-    });
+    }, captchaRequired);
   };
 
   const switchMode = (nextMode: AuthMode) => {
@@ -69,14 +80,17 @@ export function useAuthController(onDemo: () => Promise<void>) {
     setSubmitted(false);
     setError(null);
     setInfo(null);
+    setCaptchaToken(null);
+    setCaptchaVersion((current) => current + 1);
   };
 
   const sendRecovery = () => {
     void run(async () => {
       if (!isSupabaseConfigured) throw new Error('Configura Supabase antes de solicitar recuperación.');
-      await authService.sendPasswordRecovery(email);
+      if (captchaRequired && !captchaToken) throw new Error('Completa la verificación contra bots.');
+      await authService.sendPasswordRecovery(email, captchaToken ?? undefined);
       setRecoverySent(true);
-    });
+    }, captchaRequired);
   };
 
   return {
@@ -92,7 +106,12 @@ export function useAuthController(onDemo: () => Promise<void>) {
     }); },
     recoveryOpen,
     recoverySent,
-    openRecovery: () => { setRecoverySent(false); setError(null); setRecoveryOpen(true); },
+    captchaRequired,
+    captchaSiteKey: env.turnstileSiteKey,
+    captchaToken,
+    captchaVersion,
+    setCaptchaToken,
+    openRecovery: () => { setRecoverySent(false); setError(null); setCaptchaToken(null); setCaptchaVersion((current) => current + 1); setRecoveryOpen(true); },
     closeRecovery: () => setRecoveryOpen(false),
     sendRecovery,
   };

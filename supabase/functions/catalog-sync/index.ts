@@ -1,4 +1,5 @@
-import { adminClient, json } from '../_shared/client.ts';
+import { adminClient, internalError, json, verifySharedSecret } from '../_shared/client.ts';
+import { readLimitedText } from '../_shared/security.ts';
 
 type ProviderItem = {
   externalId: string;
@@ -20,21 +21,22 @@ type ProviderItem = {
 };
 
 Deno.serve(async (request: Request) => {
-  if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-  if (request.headers.get('x-cron-secret') !== Deno.env.get('CRON_SECRET')) return json({ error: 'unauthorized' }, 401);
+  if (request.method !== 'POST') return json(request, { error: 'method_not_allowed' }, 405);
+  if (!await verifySharedSecret(request, 'x-cron-secret', 'CRON_SECRET')) return json(request, { error: 'unauthorized' }, 401);
   const providerUrl = Deno.env.get('CATALOG_PROVIDER_URL');
   const providerToken = Deno.env.get('CATALOG_PROVIDER_TOKEN');
-  if (!providerUrl || !providerToken) return json({ error: 'catalog_provider_not_configured' }, 503);
+  if (!providerUrl?.startsWith('https://') || !providerToken) return json(request, { error: 'catalog_provider_not_configured' }, 503);
   try {
-    const sourceName = Deno.env.get('CATALOG_PROVIDER_NAME') ?? 'external';
-    const response = await fetch(providerUrl, { headers: { Authorization: `Bearer ${providerToken}`, Accept: 'application/json' }, signal: AbortSignal.timeout(60_000) });
+    const sourceName = (Deno.env.get('CATALOG_PROVIDER_NAME') ?? 'external').replace(/[^a-z0-9_-]/gi, '').slice(0, 60) || 'external';
+    const response = await fetch(providerUrl, { redirect: 'error', headers: { Authorization: `Bearer ${providerToken}`, Accept: 'application/json' }, signal: AbortSignal.timeout(60_000) });
     if (!response.ok) throw new Error(`catalog_http_${response.status}`);
-    const payload = await response.json() as { items?: ProviderItem[] };
-    const items = (payload.items ?? []).slice(0, 1000);
+    const providerPayload = await readLimitedText(response, 5 * 1024 * 1024, 'catalog_response_too_large');
+    const payload = JSON.parse(providerPayload) as { items?: ProviderItem[] };
+    const items = (payload.items ?? []).slice(0, 500);
     const admin = adminClient();
     let synchronized = 0;
     for (const item of items) {
-      if (!item.externalId || !item.title || !['movie', 'series', 'anime'].includes(item.type)) continue;
+      if (!item.externalId || item.externalId.length > 200 || !item.title || !['movie', 'series', 'anime'].includes(item.type)) continue;
       const { data: content, error } = await admin.from('content_items').upsert({
         external_id: item.externalId,
         source_name: sourceName,
@@ -43,10 +45,10 @@ Deno.serve(async (request: Request) => {
         release_year: item.year ?? null,
         duration_minutes: item.durationMinutes ?? null,
         maturity_rating: item.maturity ?? null,
-        synopsis: item.synopsis ?? '',
-        score: item.score ?? null,
-        popularity: item.popularity ?? 0,
-        discovery_score: item.discoveryScore ?? 0.5,
+        synopsis: (item.synopsis ?? '').slice(0, 10_000),
+        score: typeof item.score === 'number' && item.score >= 0 && item.score <= 10 ? item.score : null,
+        popularity: typeof item.popularity === 'number' && item.popularity >= 0 && item.popularity <= 1 ? item.popularity : 0,
+        discovery_score: typeof item.discoveryScore === 'number' && item.discoveryScore >= 0 && item.discoveryScore <= 1 ? item.discoveryScore : 0.5,
         mood_tags: (item.moods ?? []).map((mood) => mood.trim().toLowerCase()).filter(Boolean).slice(0, 12),
         poster_url: item.posterUrl ?? null,
         backdrop_url: item.backdropUrl ?? null,
@@ -74,8 +76,8 @@ Deno.serve(async (request: Request) => {
       }
       synchronized += 1;
     }
-    return json({ synchronized });
+    return json(request, { synchronized });
   } catch (error) {
-    return json({ error: error instanceof Error ? error.message : 'catalog_sync_failed' }, 500);
+    return internalError(request, 'catalog_sync_failed', error);
   }
 });

@@ -3,10 +3,12 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import type { AuthChangeEvent, Session as SupabaseSession } from '@supabase/supabase-js';
-import { env } from '../../config/env';
-import { sanitizePlainText, validateEmail, validatePassword } from '../../utils/validation';
+import { env, isSupabaseConfigured } from '../../config/env';
+import { sanitizePlainText, validateCurrentPassword, validateEmail, validatePassword } from '../../utils/validation';
 import { toAppError } from '../../utils/errors';
 import { getSupabase } from '../supabase/client';
+import { authThrottle } from './authThrottle';
+import { captchaService } from './captchaService';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,6 +30,23 @@ export const authService = {
   async migrateLegacySession() {
     const legacy = await AsyncStorage.getItem(LEGACY_SESSION_KEY);
     if (legacy && !env.demoMode) await AsyncStorage.removeItem(LEGACY_SESSION_KEY);
+    if (Platform.OS === 'web' || !isSupabaseConfigured) return;
+    const storageKey = `sb-${new URL(env.supabaseUrl).hostname.split('.')[0]}-auth-token`;
+    const oldSession = await AsyncStorage.getItem(storageKey);
+    if (!oldSession) return;
+    try {
+      const parsed = JSON.parse(oldSession) as { access_token?: string; refresh_token?: string };
+      if (typeof parsed.access_token !== 'string' || typeof parsed.refresh_token !== 'string') return;
+      // Nunca convierte un estado local/demo en una identidad autenticada.
+      const verified = await getSupabase().auth.getUser(parsed.access_token);
+      if (verified.error || !verified.data.user) return;
+      const migrated = await getSupabase().auth.setSession({ access_token: parsed.access_token, refresh_token: parsed.refresh_token });
+      if (migrated.error) throw toAppError(migrated.error);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+    } finally {
+      await AsyncStorage.removeItem(storageKey);
+    }
   },
 
   async enforceRememberPreference() {
@@ -48,26 +67,38 @@ export const authService = {
     return getSupabase().auth.onAuthStateChange(callback).data.subscription;
   },
 
-  async signIn(emailValue: string, passwordValue: string, remember: boolean) {
+  async signIn(emailValue: string, passwordValue: string, remember: boolean, captchaToken?: string) {
     const email = validateEmail(emailValue);
-    const password = validatePassword(passwordValue);
-    const { data, error } = await getSupabase().auth.signInWithPassword({ email, password });
-    if (error) throw toAppError(error, 'No fue posible iniciar sesión.');
+    const password = validateCurrentPassword(passwordValue);
+    await authThrottle.assertAllowed();
+    const verifiedCaptcha = await captchaService.getToken(captchaToken);
+    const { data, error } = await getSupabase().auth.signInWithPassword({
+      email,
+      password,
+      options: verifiedCaptcha ? { captchaToken: verifiedCaptcha } : undefined,
+    });
+    if (error) {
+      await authThrottle.recordFailure();
+      throw toAppError(error, 'No fue posible iniciar sesión.');
+    }
+    await authThrottle.clear();
     await saveRememberPreference(remember);
     return data.session;
   },
 
-  async signUp(nameValue: string, emailValue: string, passwordValue: string) {
+  async signUp(nameValue: string, emailValue: string, passwordValue: string, captchaToken?: string) {
     const displayName = sanitizePlainText(nameValue, 60);
     if (displayName.length < 2) throw new Error('Escribe el nombre que verán tus amigos.');
     const email = validateEmail(emailValue);
     const password = validatePassword(passwordValue);
+    const verifiedCaptcha = await captchaService.getToken(captchaToken);
     const { data, error } = await getSupabase().auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl(),
         data: { display_name: displayName },
+        ...(verifiedCaptcha ? { captchaToken: verifiedCaptcha } : {}),
       },
     });
     if (error) throw toAppError(error, 'No fue posible crear la cuenta.');
@@ -98,15 +129,29 @@ export const authService = {
     if (exchange.error) throw toAppError(exchange.error);
   },
 
-  async sendPasswordRecovery(emailValue: string) {
+  async sendPasswordRecovery(emailValue: string, captchaToken?: string) {
     const email = validateEmail(emailValue);
-    const { error } = await getSupabase().auth.resetPasswordForEmail(email, { redirectTo: redirectUrl() });
+    const verifiedCaptcha = await captchaService.getToken(captchaToken);
+    const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl(),
+      ...(verifiedCaptcha ? { captchaToken: verifiedCaptcha } : {}),
+    });
     if (error) throw toAppError(error, 'No pudimos enviar el correo de recuperación.');
   },
 
-  async updatePassword(passwordValue: string) {
+  async requestPasswordCode() {
+    const { error } = await getSupabase().auth.reauthenticate();
+    if (error) throw toAppError(error);
+  },
+
+  async updatePassword(passwordValue: string, currentPasswordValue?: string, nonce?: string) {
     const password = validatePassword(passwordValue);
-    const { error } = await getSupabase().auth.updateUser({ password });
+    const currentPassword = currentPasswordValue ? validateCurrentPassword(currentPasswordValue) : undefined;
+    const { error } = await getSupabase().auth.updateUser({
+      password,
+      ...(currentPassword ? { current_password: currentPassword } : {}),
+      ...(nonce ? { nonce: nonce.trim() } : {}),
+    });
     if (error) throw toAppError(error);
   },
 

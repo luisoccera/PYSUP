@@ -88,7 +88,7 @@ export const forumRepository = {
     const userId = await requireUserId();
     const query = getSupabase().from('forum_likes');
     const { error } = liked
-      ? await query.upsert({ topic_id: topicId, user_id: userId }, { onConflict: 'topic_id,user_id' })
+      ? await query.upsert({ topic_id: topicId, user_id: userId }, { onConflict: 'topic_id,user_id', ignoreDuplicates: true })
       : await query.delete().eq('topic_id', topicId).eq('user_id', userId);
     if (error) throw error;
   },

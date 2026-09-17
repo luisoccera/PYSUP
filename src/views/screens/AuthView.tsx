@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AuthControllerState } from '../../controllers/useAuthController';
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { Button, Logo } from '../components/ui';
+import { TurnstileChallenge } from '../components/TurnstileChallenge';
 import { authStyles } from '../styles/authStyles';
 import { colors } from '../styles/theme';
 
@@ -46,7 +47,7 @@ function Field({ label, value, onChangeText, placeholder, icon, secure, error, k
           style={authStyles.input}
           secureTextEntry={secure && !visible}
           keyboardType={keyboardType}
-          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
+          autoCapitalize={secure || keyboardType === 'email-address' ? 'none' : 'sentences'}
           autoCorrect={false}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -92,6 +93,11 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
     continueWithProvider,
     recoveryOpen,
     recoverySent,
+    captchaRequired,
+    captchaSiteKey,
+    captchaToken,
+    captchaVersion,
+    setCaptchaToken,
     openRecovery,
     closeRecovery,
     sendRecovery,
@@ -115,7 +121,7 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
                   <LinearGradient colors={['#253653', '#151A27']} style={StyleSheet.absoluteFill} />
                   <View style={authStyles.previewMoon} />
                   <View style={authStyles.previewCopy}>
-                    <Text style={authStyles.previewMatch}>96% PARA TI</Text>
+                    <Text style={authStyles.previewMatch}>DESCUBRE TU PRÓXIMA HISTORIA</Text>
                     <Text style={authStyles.previewTitle}>Señal{`\n`}nocturna</Text>
                     <Text style={authStyles.previewMeta}>MISTERIO · CIENCIA FICCIÓN</Text>
                   </View>
@@ -140,7 +146,7 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
 
             {mode === 'register' && <Field label="Nombre público" value={name} onChangeText={setName} placeholder="¿Cómo te llamamos?" icon="user" error={submitted ? errors.name : undefined} />}
             <Field label="Correo electrónico" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" icon="mail" keyboardType="email-address" error={submitted ? errors.email : undefined} />
-            <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="Mínimo 8 caracteres" icon="lock" secure error={submitted ? errors.password : undefined} />
+            <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder={mode === 'login' ? 'Tu contraseña' : 'Mínimo 12 caracteres'} icon="lock" secure error={submitted ? errors.password : undefined} />
             {mode === 'register' && <Field label="Confirmar contraseña" value={confirm} onChangeText={setConfirm} placeholder="Repite tu contraseña" icon="shield" secure error={submitted ? errors.confirm : undefined} />}
 
             {mode === 'login' ? (
@@ -164,7 +170,9 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
 
             {!!error && <Text accessibilityRole="alert" style={authStyles.errorText}>{error}</Text>}
             {!!info && <Text accessibilityRole="alert" style={[authStyles.secureText, { color: colors.success }]}>{info}</Text>}
-            <Button label={loading ? 'Procesando…' : mode === 'login' ? 'Entrar a PYSUP' : 'Crear mi cuenta'} onPress={submit} icon="arrow-right" disabled={loading} style={authStyles.submit} />
+            {captchaRequired && !recoveryOpen && <TurnstileChallenge siteKey={captchaSiteKey} resetKey={captchaVersion} onToken={setCaptchaToken} />}
+            {submitted && errors.captcha && <Text style={authStyles.errorText}>{errors.captcha}</Text>}
+            <Button label={loading ? 'Procesando…' : mode === 'login' ? 'Entrar a PYSUP' : 'Crear mi cuenta'} onPress={submit} icon="arrow-right" disabled={loading || (captchaRequired && !captchaToken)} style={authStyles.submit} />
             {mode === 'login' && canEnterDemo && <Button label="Entrar al demo local" onPress={enterDemo} icon="play-circle" variant="ghost" disabled={loading} style={authStyles.demoAccess} />}
             <View style={authStyles.divider}><View style={authStyles.dividerLine} /><Text style={authStyles.dividerText}>o continúa con</Text><View style={authStyles.dividerLine} /></View>
             <View style={authStyles.socialRow}>
@@ -183,8 +191,9 @@ export function AuthView({ controller }: { controller: AuthControllerState }) {
             <Text style={authStyles.recoveryTitle}>{recoverySent ? 'Revisa tu correo' : 'Recupera tu acceso'}</Text>
             <Text style={authStyles.recoveryText}>{recoverySent ? `Enviamos instrucciones a ${email || 'tu correo'}.` : 'Escribe tu correo y te enviaremos un enlace seguro para restablecer tu contraseña.'}</Text>
             {!recoverySent && <Field label="Correo" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" icon="mail" keyboardType="email-address" />}
+            {!recoverySent && captchaRequired && <TurnstileChallenge siteKey={captchaSiteKey} resetKey={captchaVersion} onToken={setCaptchaToken} />}
             {!!error && <Text accessibilityRole="alert" style={authStyles.errorText}>{error}</Text>}
-            <Button label={loading ? 'Enviando…' : recoverySent ? 'Entendido' : 'Enviar enlace'} disabled={loading} onPress={() => recoverySent ? closeRecovery() : sendRecovery()} />
+            <Button label={loading ? 'Enviando…' : recoverySent ? 'Entendido' : 'Enviar enlace'} disabled={loading || (!recoverySent && captchaRequired && !captchaToken)} onPress={() => recoverySent ? closeRecovery() : sendRecovery()} />
             {!recoverySent && <Button label="Cancelar" onPress={closeRecovery} variant="ghost" />}
           </View>
         </View>

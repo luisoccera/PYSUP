@@ -133,6 +133,8 @@ export const onboardingStyles = StyleSheet.create({
   kicker: { color: colors.lime, fontSize: 11, fontWeight: '900', letterSpacing: 1.5, marginBottom: 8 },
 
   title: { color: colors.text, fontSize: 38, lineHeight: 43, fontWeight: '900', letterSpacing: -1.3 },
+  titlePhone: { fontSize: 31, lineHeight: 36, letterSpacing: -0.9 },
+  titleCompactPhone: { fontSize: 28, lineHeight: 33 },
   subtitle: { color: colors.textMuted, fontSize: 15, lineHeight: 23, marginTop: 12, marginBottom: 28, maxWidth: 630 },
 
   countryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -162,6 +164,7 @@ export const onboardingStyles = StyleSheet.create({
   readyText: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
 
   footer: { width: '100%', maxWidth: 720, alignSelf: 'center', flexDirection: 'row', gap: 12 },
+  footerPhone: { paddingBottom: 8 },
   backButton: { flex: 0.45 },
   nextButton: { flex: 1 },
 

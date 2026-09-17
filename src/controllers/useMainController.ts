@@ -335,10 +335,14 @@ export function useMainController(options: MainControllerOptions) {
     void accountService.requestDataExport().catch(reportError);
   };
 
-  const changePassword = (password: string) => {
+  const changePassword = (password: string, currentPassword: string, nonce?: string) => {
     if (isDemo) return Promise.reject(new Error('El modo demo no tiene contraseña.'));
-    return authService.updatePassword(password);
+    return authService.updatePassword(password, currentPassword, nonce);
   };
+
+  const requestPasswordCode = () => isDemo
+    ? Promise.reject(new Error('El modo demo no tiene una cuenta de correo.'))
+    : authService.requestPasswordCode();
 
   const deleteAccount = () => {
     if (isDemo) return Alert.alert('Modo demo', 'No existe una cuenta remota que eliminar.');
@@ -487,7 +491,7 @@ export function useMainController(options: MainControllerOptions) {
     focusedForumTopicId, clearFocusedForumTopic: () => setFocusedForumTopicId(null),
     selectedContent, setSelectedContent, notificationsOpen, setNotificationsOpen,
     toggleSelectedLike, toggleSelectedSave,
-    changeAvatar, removeAvatar, changeCover, removeCover, downloadMyData, changePassword, deleteAccount,
+    changeAvatar, removeAvatar, changeCover, removeCover, downloadMyData, changePassword, requestPasswordCode, deleteAccount,
     blockedUsers, unblockUser,
   };
 }

@@ -11,6 +11,10 @@ export default tseslint.config(
     rules: { 'no-undef': 'off' },
   },
   {
+    files: ['public/auth/**/*.js'],
+    languageOptions: { globals: { window: 'readonly', document: 'readonly', URLSearchParams: 'readonly' } },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     rules: {

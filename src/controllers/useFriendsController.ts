@@ -51,6 +51,7 @@ export function useFriendsController(friends: Friend[], onAddFriend: (friend: Fr
   const [friendRequests, setFriendRequests] = useState<{ id: string; senderId: string; name: string; username: string }[]>([]);
   const [focusedRequestId, setFocusedRequestId] = useState<string | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
+  const presenceFriendIds = friends.map((friend) => friend.id).sort().join(',');
   const [hiddenFriendIds, setHiddenFriendIds] = useState<string[]>([]);
   const sequenceRef = useRef(0);
 
@@ -68,8 +69,8 @@ export function useFriendsController(friends: Friend[], onAddFriend: (friend: Fr
 
   useEffect(() => {
     if (isDemo || !userId) return;
-    return presenceRepository.subscribe(userId, setOnlineUserIds);
-  }, [isDemo, userId]);
+    return presenceRepository.subscribe(userId, presenceFriendIds ? presenceFriendIds.split(',') : [], setOnlineUserIds);
+  }, [isDemo, userId, presenceFriendIds]);
 
   useEffect(() => {
     if (!roomActive || !playing) return;

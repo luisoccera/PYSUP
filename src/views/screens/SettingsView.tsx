@@ -34,16 +34,20 @@ type SettingsProps = {
   onLogout: () => void;
   onLogoutAll: () => void;
   onDownloadData: () => void;
-  onChangePassword: (password: string) => Promise<unknown>;
+  onChangePassword: (password: string, currentPassword: string, nonce?: string) => Promise<unknown>;
+  onRequestPasswordCode: () => Promise<void>;
   onDeleteAccount: () => void;
   onUnblock: (userId: string) => void;
 };
 
-export function SettingsScreen({ name, username, avatarUrl, country, connected, preferences, blockedUsers, onPreferenceChange, onCountryChange, onConnect, onProfile, onLogout, onLogoutAll, onDownloadData, onChangePassword, onDeleteAccount, onUnblock }: SettingsProps) {
+export function SettingsScreen({ name, username, avatarUrl, country, connected, preferences, blockedUsers, onPreferenceChange, onCountryChange, onConnect, onProfile, onLogout, onLogoutAll, onDownloadData, onChangePassword, onRequestPasswordCode, onDeleteAccount, onUnblock }: SettingsProps) {
   const responsive = useResponsiveLayout();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [blocksOpen, setBlocksOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [passwordNonce, setPasswordNonce] = useState('');
+  const [passwordInfo, setPasswordInfo] = useState('');
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordError, setPasswordError] = useState('');
 
@@ -51,9 +55,19 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
     if (passwordBusy) return;
     setPasswordBusy(true);
     setPasswordError('');
-    void onChangePassword(newPassword)
-      .then(() => { setNewPassword(''); setPasswordOpen(false); })
+    void onChangePassword(newPassword, currentPassword, passwordNonce || undefined)
+      .then(() => { setNewPassword(''); setCurrentPassword(''); setPasswordNonce(''); setPasswordOpen(false); })
       .catch((error: unknown) => setPasswordError(error instanceof Error ? error.message : 'No se pudo cambiar la contraseña.'))
+      .finally(() => setPasswordBusy(false));
+  };
+
+  const requestCode = () => {
+    if (passwordBusy) return;
+    setPasswordBusy(true);
+    setPasswordError('');
+    void onRequestPasswordCode()
+      .then(() => setPasswordInfo('Revisa tu correo y escribe el código de confirmación.'))
+      .catch((error: unknown) => setPasswordError(error instanceof Error ? error.message : 'No se pudo enviar el código.'))
       .finally(() => setPasswordBusy(false));
   };
 
@@ -129,9 +143,14 @@ export function SettingsScreen({ name, username, avatarUrl, country, connected, 
       <Modal transparent visible={passwordOpen} animationType="fade" onRequestClose={() => setPasswordOpen(false)}>
         <View style={[styles.modalBackdrop, responsive.isPhone && styles.modalBackdropPhone]}><View style={[styles.composeModal, responsive.isPhone && styles.composeModalPhone]}>
           <Text style={styles.modalEyebrow}>SEGURIDAD</Text><Text style={styles.modalTitle}>Nueva contraseña</Text>
-          <Text style={styles.inputLabel}>Contraseña</Text><TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" placeholder="Mínimo 8 caracteres" placeholderTextColor={colors.textDim} style={styles.modalInput} />
+          <Text style={styles.inputLabel}>Contraseña actual</Text><TextInput value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry autoCapitalize="none" autoComplete="current-password" placeholder="Confirma tu contraseña actual" placeholderTextColor={colors.textDim} style={styles.modalInput} />
+          <Text style={styles.inputLabel}>Contraseña nueva</Text><TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" autoComplete="new-password" placeholder="12 caracteres, mayúscula, minúscula y número" placeholderTextColor={colors.textDim} style={styles.modalInput} />
+          <Text style={styles.settingsHelp}>Si tu sesión no es reciente, solicita el código seguro por correo. Las cuentas OAuth pueden crear contraseña mediante recuperación de acceso.</Text>
+          <Button label="Enviar código de confirmación" compact variant="ghost" disabled={passwordBusy} onPress={requestCode} />
+          <TextInput accessibilityLabel="Código de confirmación de contraseña" value={passwordNonce} onChangeText={(value) => setPasswordNonce(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={10} placeholder="Código del correo (si fue solicitado)" placeholderTextColor={colors.textDim} style={styles.modalInput} />
+          {!!passwordInfo && <Text style={{ color: colors.success }}>{passwordInfo}</Text>}
           {!!passwordError && <Text style={{ color: colors.coral }}>{passwordError}</Text>}
-          <View style={styles.modalActions}><Button label="Cancelar" variant="ghost" onPress={() => setPasswordOpen(false)} style={styles.modalAction} /><Button label={passwordBusy ? 'Guardando…' : 'Cambiar'} disabled={passwordBusy || newPassword.length < 8} onPress={savePassword} style={styles.modalAction} /></View>
+          <View style={styles.modalActions}><Button label="Cancelar" variant="ghost" onPress={() => { setCurrentPassword(''); setNewPassword(''); setPasswordNonce(''); setPasswordInfo(''); setPasswordOpen(false); }} style={styles.modalAction} /><Button label={passwordBusy ? 'Guardando…' : 'Cambiar'} disabled={passwordBusy || !currentPassword || newPassword.length < 12} onPress={savePassword} style={styles.modalAction} /></View>
         </View></View>
       </Modal>
 

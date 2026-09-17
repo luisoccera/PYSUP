@@ -18,7 +18,7 @@ export function PasswordRecoveryView({ onSubmit }: { onSubmit: (password: string
   const submitting = useRef(false);
   const submit = async () => {
     if (submitting.current) return;
-    if (password.length < 8) return setError('La nueva contraseña debe tener al menos 8 caracteres.');
+    if (password.length < 12) return setError('La nueva contraseña debe tener al menos 12 caracteres.');
     if (password !== confirmation) return setError('Las contraseñas no coinciden.');
     submitting.current = true;
     setLoading(true);
@@ -27,7 +27,7 @@ export function PasswordRecoveryView({ onSubmit }: { onSubmit: (password: string
     catch (caught) { setError(toAppError(caught).message); }
     finally { submitting.current = false; setLoading(false); }
   };
-  return <SafeAreaView style={styles.safe}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.page}><Logo /><Feather name="key" size={38} color={colors.lime} /><Text style={styles.title}>Crea una nueva contraseña</Text><Text style={styles.body}>El enlace fue validado. Este cambio se aplicará a tu misma cuenta en todos los dispositivos.</Text><TextInput accessibilityLabel="Nueva contraseña" secureTextEntry value={password} onChangeText={setPassword} placeholder="Mínimo 8 caracteres" placeholderTextColor={colors.textDim} style={styles.input} /><TextInput accessibilityLabel="Confirmar nueva contraseña" secureTextEntry value={confirmation} onChangeText={setConfirmation} placeholder="Repite la contraseña" placeholderTextColor={colors.textDim} style={styles.input} />{!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}<Button label={loading ? 'Actualizando…' : 'Guardar nueva contraseña'} icon="shield" disabled={loading} onPress={() => { void submit(); }} /></KeyboardAvoidingView></SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.page}><Logo /><Feather name="key" size={38} color={colors.lime} /><Text style={styles.title}>Crea una nueva contraseña</Text><Text style={styles.body}>El enlace fue validado. Este cambio se aplicará a tu misma cuenta en todos los dispositivos.</Text><TextInput accessibilityLabel="Nueva contraseña" secureTextEntry value={password} onChangeText={setPassword} placeholder="Mínimo 12 caracteres" placeholderTextColor={colors.textDim} style={styles.input} /><TextInput accessibilityLabel="Confirmar nueva contraseña" secureTextEntry value={confirmation} onChangeText={setConfirmation} placeholder="Repite la contraseña" placeholderTextColor={colors.textDim} style={styles.input} />{!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}<Button label={loading ? 'Actualizando…' : 'Guardar nueva contraseña'} icon="shield" disabled={loading} onPress={() => { void submit(); }} /></KeyboardAvoidingView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({

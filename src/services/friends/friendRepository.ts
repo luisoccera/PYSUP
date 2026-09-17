@@ -46,7 +46,7 @@ export const friendRepository = {
 
   async blockUser(blockedId: string) {
     const blockerId = await requireUserId();
-    const { error } = await getSupabase().from('user_blocks').upsert({ blocker_id: blockerId, blocked_id: blockedId }, { onConflict: 'blocker_id,blocked_id' });
+    const { error } = await getSupabase().from('user_blocks').upsert({ blocker_id: blockerId, blocked_id: blockedId }, { onConflict: 'blocker_id,blocked_id', ignoreDuplicates: true });
     if (error) throw error;
   },
 

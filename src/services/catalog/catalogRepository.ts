@@ -42,7 +42,9 @@ export function mapContent(row: ContentRecord): ContentItem {
 
 function mapAvailability(rows: AvailabilityRecord[], trailerUrl = ''): ContentAvailability {
   const offers: WatchOffer[] = rows
-    .filter((row) => row.status === 'available' && row.content_providers)
+    .filter((row) => row.status === 'available' && row.content_providers
+      && Date.parse(row.checked_at) >= Date.now() - 7 * 24 * 60 * 60 * 1000
+      && (!row.expires_at || Date.parse(row.expires_at) > Date.now()))
     .map((row) => ({
       platformId: row.content_providers!.provider_key,
       platformName: row.content_providers!.name,

@@ -279,7 +279,7 @@ create table public.direct_messages (
 
 create table public.rooms (
   id uuid primary key default gen_random_uuid(),
-  invite_code text not null unique default upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10)),
+  invite_code text not null unique default upper(substr(replace(pg_catalog.gen_random_uuid()::text, '-', ''), 1, 20)),
   host_id uuid not null references public.profiles(id) on delete cascade,
   content_id uuid references public.content_items(id) on delete set null,
   title text not null check (char_length(title) between 1 and 100),
@@ -556,7 +556,7 @@ returns setof public.content_items language sql volatile security definer set se
   select ci.*
   from eligible e
   join public.content_items ci on ci.id = e.id
-  order by (e.genre_affinity * 2.0 + e.learned_affinity + e.discovery_score * 3.0 + (1.0 - e.popularity) * 1.5 + random() * 0.25) desc
+  order by (e.genre_affinity * 2.0 + e.learned_affinity + ci.discovery_score * 3.0 + (1.0 - ci.popularity) * 1.5 + random() * 0.25) desc
   limit least(greatest(result_limit, 1), 50);
 $$;
 

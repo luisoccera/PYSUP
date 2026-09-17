@@ -65,4 +65,4 @@ npm run test:e2e:web
 - Las salas se recuperan al reconectar, admiten código o enlace `pysup://room/CODIGO` y reservan el control de reproducción al anfitrión o moderador.
 - El procesamiento de clips se delega a un worker HTTP protegido. Sin worker configurado se muestra un error recuperable y no se inventan candidatos.
 
-Consulta [README_SETUP.md](README_SETUP.md), [docs/RESPONSIVE.md](docs/RESPONSIVE.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/TERMS.md](docs/TERMS.md) y [docs/CLIP_ANALYSIS.md](docs/CLIP_ANALYSIS.md).
+Consulta [README_SETUP.md](README_SETUP.md), [docs/SECURITY.md](docs/SECURITY.md), [docs/RESPONSIVE.md](docs/RESPONSIVE.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/TERMS.md](docs/TERMS.md) y [docs/CLIP_ANALYSIS.md](docs/CLIP_ANALYSIS.md).

@@ -8,10 +8,12 @@ describe('autenticación y validación', () => {
   });
 
   it('aplica límites a registro, recuperación y perfil', () => {
-    expect(validatePassword('12345678')).toBe('12345678');
-    expect(() => validatePassword('corta')).toThrow('8 caracteres');
+    expect(validatePassword('ClaveSegura2026')).toBe('ClaveSegura2026');
+    expect(() => validatePassword('12345678')).toThrow('12 caracteres');
+    expect(() => validatePassword('clavesegura2026')).toThrow('mayúsculas');
     expect(validateUsername(' Cine_Fan ')).toBe('cine_fan');
     expect(sanitizePlainText(' hola\u0000 mundo ', 20)).toBe('hola mundo');
+    expect(sanitizePlainText('texto\u202Eoculto\u200B', 30)).toBe('textooculto');
   });
 
   it('sólo admite enlaces HTTPS y dominios autorizados', () => {

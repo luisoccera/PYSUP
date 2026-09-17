@@ -9,6 +9,7 @@
     "expo": "~57.0.18",
     "expo-auth-session": "~57.0.10",
     "expo-constants": "~57.0.16",
+    "expo-crypto": "~57.0.3",
     "expo-device": "~57.0.1",
     "expo-document-picker": "~57.0.1",
     "expo-file-system": "~57.0.6",
@@ -31,6 +32,7 @@
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@types/react": "~19.2.2",
@@ -46,11 +48,27 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "typecheck:server": "npx --yes deno@2.7.7 check --config supabase/functions/deno.json supabase/functions/clip-analysis/index.ts supabase/functions/catalog-sync/index.ts supabase/functions/delete-account/index.ts supabase/functions/export-user-data/index.ts supabase/functions/purge-expired-clips/index.ts supabase/functions/push-dispatch/index.ts",
     "lint": "eslint .",
     "test": "vitest run",
+    "security:secrets": "node scripts/security-audit.mjs",
+    "security:history": "node scripts/security-audit.mjs --history",
+    "security:deps": "npm audit --audit-level=high",
+    "security": "npm run security:secrets && npm run security:deps",
     "test:e2e:web": "npm run export:web && playwright test",
     "export:web": "expo export --platform web"
   },
   "private": true,
+  "overrides": {
+    "@expo/plist": {
+      "@xmldom/xmldom": "0.8.15"
+    },
+    "plist": {
+      "@xmldom/xmldom": "0.9.12"
+    },
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  },
   "license": "UNLICENSED"
 }

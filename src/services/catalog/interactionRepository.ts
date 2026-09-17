@@ -40,19 +40,16 @@ export const interactionRepository = {
   },
 
   async upsertReview(contentId: string, rating: number, text: string, spoiler: boolean) {
-    const userId = await requireUserId();
     const safeRating = Math.round(rating);
     if (safeRating < 1 || safeRating > 5) throw new Error('La calificación debe estar entre 1 y 5.');
     const body = sanitizePlainText(text, 4000);
     if (body.length < 3) throw new Error('La reseña es demasiado corta.');
-    const { data, error } = await getSupabase().from('reviews').upsert({
-      user_id: userId,
-      content_id: contentId,
-      rating: safeRating,
-      body,
-      contains_spoilers: spoiler,
-      deleted_at: null,
-    }, { onConflict: 'user_id,content_id' }).select('*').single();
+    const { data, error } = await getSupabase().rpc('upsert_my_review', {
+      selected_content_id: contentId,
+      selected_rating: safeRating,
+      selected_body: body,
+      selected_spoiler: spoiler,
+    });
     if (error) throw error;
     await interactionRepository.record(contentId, 'review', safeRating);
     return data;
@@ -89,7 +86,7 @@ export const interactionRepository = {
     const userId = await requireUserId();
     const query = getSupabase().from('review_likes');
     const { error } = liked
-      ? await query.upsert({ review_id: reviewId, user_id: userId }, { onConflict: 'review_id,user_id' })
+      ? await query.upsert({ review_id: reviewId, user_id: userId }, { onConflict: 'review_id,user_id', ignoreDuplicates: true })
       : await query.delete().eq('review_id', reviewId).eq('user_id', userId);
     if (error) throw error;
   },

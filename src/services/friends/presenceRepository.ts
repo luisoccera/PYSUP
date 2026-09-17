@@ -1,23 +1,27 @@
 import { getSupabase } from '../supabase/client';
 
-type PresencePayload = { user_id?: string; online_at?: string };
-
 export const presenceRepository = {
-  subscribe(userId: string, onChange: (onlineUserIds: string[]) => void) {
+  subscribe(userId: string, friendIds: string[], onChange: (onlineUserIds: string[]) => void) {
     const supabase = getSupabase();
-    const channel = supabase.channel('pysup:online-users', { config: { presence: { key: userId } } })
+    const online = new Set<string>();
+    const channels = [...new Set([userId, ...friendIds])].map((ownerId) => {
+    const channel = supabase.channel(`presence:${ownerId}`, { config: { private: true, presence: { key: userId } } })
       .on('presence', { event: 'sync' }, () => {
-        const ids = Object.values(channel.presenceState<PresencePayload>())
-          .flat()
-          .flatMap((presence) => presence.user_id ? [presence.user_id] : []);
-        onChange([...new Set(ids)]);
+        // La identidad viene del topic autorizado por RLS, no de un payload editable.
+        if (Object.values(channel.presenceState()).some((entries) => entries.length > 0)) online.add(ownerId);
+        else online.delete(ownerId);
+        onChange([...online]);
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          void channel.track({ user_id: userId, online_at: new Date().toISOString() });
+        if (status === 'SUBSCRIBED' && ownerId === userId) {
+          void channel.track({ online_at: new Date().toISOString() });
           void supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', userId);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          online.delete(ownerId); onChange([...online]);
         }
       });
-    return () => { void supabase.removeChannel(channel); };
+    return channel;
+    });
+    return () => { channels.forEach((channel) => { void supabase.removeChannel(channel); }); };
   },
 };
