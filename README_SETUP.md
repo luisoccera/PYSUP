@@ -2,7 +2,7 @@
 
 ## 1. Requisitos
 
-- Node.js 20 o posterior.
+- Node.js 24.x (la misma versión mayor utilizada en CI).
 - npm y Expo compatibles con el `package-lock.json`.
 - Una cuenta de Supabase.
 - Una cuenta Expo/EAS para builds y notificaciones móviles.
@@ -15,13 +15,15 @@
 3. Instala e inicia sesión en la CLI:
 
 ```bash
-npm install --global supabase
-supabase login
-supabase link --project-ref TU_PROJECT_REF
-supabase db push
+npm install --save-dev supabase
+npx supabase login
+npx supabase link --project-ref TU_PROJECT_REF
+npx supabase db push
 ```
 
-`supabase db push` aplica las migraciones de `supabase/migrations`: esquema/RLS/Storage/Realtime, catálogo demostrativo y endurecimiento de seguridad.
+Ejecuta estos comandos desde la raíz de PYSUP. No vuelvas a ejecutar `supabase init`: el proyecto ya contiene `supabase/config.toml`. La instalación por npm es local al proyecto, no global; consulta la [documentación oficial de la CLI](https://supabase.com/docs/guides/local-development/cli/getting-started).
+
+`npx supabase db push` aplica las migraciones de `supabase/migrations`: esquema/RLS/Storage/Realtime, catálogo demostrativo y endurecimiento de seguridad.
 
 4. Comprueba en el panel que RLS permanezca activado en todas las tablas públicas y que los buckets `profile-media` y `clip-uploads` sean privados.
 5. En **Authentication > URL Configuration** agrega:
@@ -55,7 +57,7 @@ Nunca uses la clave `service_role` en variables `EXPO_PUBLIC_*`.
 
 Estas variables se incluyen en el bundle. Nunca pongas aquí `service_role`, secretos OAuth, tokens del worker o credenciales del catálogo.
 
-En **Authentication → Bot and Abuse Protection** activa Cloudflare Turnstile con su secret key. Configura una política de contraseña de al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos, y activa la comprobación de contraseñas filtradas cuando esté disponible. Replica en el panel alojado los límites de `supabase/config.toml`; ese archivo controla directamente el entorno local/autohospedado.
+En **Authentication → Bot and Abuse Protection** activa Cloudflare Turnstile con su secret key. Configura una política de contraseña de al menos 12 caracteres con mayúsculas, minúsculas y números, igual que el cliente y `supabase/config.toml`; puedes endurecerla adicionalmente con símbolos. Activa la comprobación de contraseñas filtradas cuando esté disponible. Replica en el panel alojado los límites de `supabase/config.toml`; ese archivo controla directamente el entorno local/autohospedado.
 
 ## 4. OAuth de Google y Apple
 
@@ -81,28 +83,28 @@ Sin estas credenciales los botones muestran un error real; no crean una sesión 
 Despliega:
 
 ```bash
-supabase functions deploy clip-analysis
-supabase functions deploy export-user-data
-supabase functions deploy delete-account
-supabase functions deploy purge-expired-clips --no-verify-jwt
-supabase functions deploy push-dispatch --no-verify-jwt
-supabase functions deploy catalog-sync --no-verify-jwt
+npx supabase functions deploy clip-analysis
+npx supabase functions deploy export-user-data
+npx supabase functions deploy delete-account
+npx supabase functions deploy purge-expired-clips --no-verify-jwt
+npx supabase functions deploy push-dispatch --no-verify-jwt
+npx supabase functions deploy catalog-sync --no-verify-jwt
 ```
 
 Configura únicamente como secretos del servidor:
 
 ```bash
-supabase secrets set CLIP_WORKER_URL=https://worker.example.com/analyze
-supabase secrets set CLIP_WORKER_TOKEN=...
-supabase secrets set CRON_SECRET=...
-supabase secrets set PUSH_WEBHOOK_SECRET=...
-supabase secrets set EXPO_ACCESS_TOKEN=...
-supabase secrets set CATALOG_PROVIDER_URL=https://catalog.example.com/feed
-supabase secrets set CATALOG_PROVIDER_TOKEN=...
-supabase secrets set CATALOG_PROVIDER_NAME=proveedor-contratado
-supabase secrets set APP_ENV=production
-supabase secrets set ALLOWED_ORIGINS=https://TU_DOMINIO
-supabase secrets set SECURITY_HASH_SALT=VALOR_ALEATORIO_LARGO
+npx supabase secrets set CLIP_WORKER_URL=https://worker.example.com/analyze
+npx supabase secrets set CLIP_WORKER_TOKEN=...
+npx supabase secrets set CRON_SECRET=...
+npx supabase secrets set PUSH_WEBHOOK_SECRET=...
+npx supabase secrets set EXPO_ACCESS_TOKEN=...
+npx supabase secrets set CATALOG_PROVIDER_URL=https://catalog.example.com/feed
+npx supabase secrets set CATALOG_PROVIDER_TOKEN=...
+npx supabase secrets set CATALOG_PROVIDER_NAME=proveedor-contratado
+npx supabase secrets set APP_ENV=production
+npx supabase secrets set ALLOWED_ORIGINS=https://TU_DOMINIO
+npx supabase secrets set SECURITY_HASH_SALT=VALOR_ALEATORIO_LARGO
 ```
 
 Supabase agrega automáticamente `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` a las funciones. Esa última sólo se usa dentro del servidor.
@@ -179,10 +181,10 @@ Para probar sincronización real usa dos navegadores/perfiles o un móvil y nave
 Validación local del esquema (requiere Docker Desktop):
 
 ```bash
-supabase start
-supabase db reset
-supabase db lint --local
-supabase test db
+npx supabase start
+npx supabase db reset
+npx supabase db lint --local
+npx supabase test db
 ```
 
 `supabase/tests/security_rls.test.sql` prueba permisos administrativos, campos inmutables y separación de perfiles/preferencias/presencia entre usuarios. Estas pruebas requieren PostgreSQL/Supabase local con Docker; no quedan ejecutadas sólo por correr Vitest. Desactiva **Allow public access** en Realtime Settings del proyecto alojado para los canales privados de presencia. Prueba cuentas reales en dos dispositivos antes de publicar.
