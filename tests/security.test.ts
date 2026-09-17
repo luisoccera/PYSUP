@@ -29,6 +29,8 @@ describe('endurecimiento de seguridad', () => {
     expect(config).toContain('max_rows = 500');
     expect(config).toContain('sign_in_sign_ups = 10');
     expect(config).toContain('enable_anonymous_sign_ins = false');
+    expect(config).toContain('minimum_password_length = 12');
+    expect(config).toContain('password_requirements = "lower_upper_letters_digits"');
     expect(config).toContain('secure_password_change = true');
     expect(config).toContain('inactivity_timeout = "24h"');
   });

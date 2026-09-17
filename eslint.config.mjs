@@ -7,8 +7,8 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['scripts/**/*.mjs'],
-    rules: { 'no-undef': 'off' },
+    files: ['scripts/**/*.mjs', 'scripts/**/*.cjs', 'app.config.js'],
+    rules: { 'no-undef': 'off', '@typescript-eslint/no-require-imports': 'off' },
   },
   {
     files: ['public/auth/**/*.js'],

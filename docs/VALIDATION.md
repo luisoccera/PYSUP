@@ -6,7 +6,7 @@
 - `npm run typecheck`: cliente TypeScript.
 - `npm run typecheck:server`: las seis Edge Functions, con Deno fijado a 2.7.7.
 - `npm run lint`: sin errores.
-- `npm test`: 92 casos; incluye ejecución de las cuatro migraciones SQL en PostgreSQL embebido y pruebas de aislamiento entre usuarios.
+- `npm test`: 96 casos; incluye ejecución de las cuatro migraciones SQL en PostgreSQL embebido, aislamiento entre usuarios y rechazo de claves privadas antes de compilar.
 - `npm run test:e2e:web`: exportación web y ocho casos de navegador: acceso arbitrario rechazado, registro, CSP y tamaños 320, 390, 768, 1024 y 1440 píxeles.
 - `npm run security:secrets` y `security:history`: revisión de credenciales detectables sin imprimir sus valores.
 - `npm audit --audit-level=high`: cero vulnerabilidades conocidas en el árbol instalado.

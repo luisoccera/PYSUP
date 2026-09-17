@@ -6,7 +6,7 @@ Esta guía convierte los 20 controles solicitados en medidas verificables. Disti
 
 | # | Control | Implementación |
 |---|---|---|
-| 1 | Ocultar claves API | El cliente sólo acepta la clave pública de Supabase. Los secretos del worker, catálogo, cron y push viven en secretos de Edge Functions. |
+| 1 | Ocultar claves API | El cliente sólo acepta la clave pública de Supabase. `app.config.js` aborta Expo/EAS antes de compilar si detecta secretos en variables públicas. Los secretos del worker, catálogo, cron y push viven en Edge Functions. |
 | 2 | Eliminar secretos de Git | `.gitignore`, `security:secrets`, `security:history` y CI revisan archivos actuales e historial. Un secreto detectado exige revocación; el escáner no garantiza detectar todos los formatos. |
 | 3 | Usar clave pública de DB | `env.ts` rechaza claves `sb_secret_`, texto `service_role` y JWT con rol `service_role`. |
 | 4 | Activar RLS | Todas las tablas de aplicación tienen RLS y la migración de endurecimiento aplica `FORCE ROW LEVEL SECURITY`. |
@@ -32,7 +32,7 @@ Esta guía convierte los 20 controles solicitados en medidas verificables. Disti
 1. En Supabase, **Authentication → Bot and Abuse Protection**, activa Cloudflare Turnstile y registra su secret key.
 2. Coloca sólo la site key pública en `EXPO_PUBLIC_TURNSTILE_SITE_KEY`.
 3. En **Authentication → Rate Limits**, replica o endurece los límites de `supabase/config.toml`.
-4. En la política de contraseñas exige 12 caracteres, mayúsculas, minúsculas, números y símbolos; activa protección contra contraseñas filtradas si el plan la incluye.
+4. Replica la política de `supabase/config.toml`: mínimo 12 caracteres, mayúsculas, minúsculas y números. Puedes endurecerla con símbolos; activa protección contra contraseñas filtradas si el plan la incluye.
 5. Configura `APP_ENV=production`, `ALLOWED_ORIGINS=https://TU_DOMINIO` y un `SECURITY_HASH_SALT` aleatorio como secretos de Edge Functions.
 6. Activa Secret scanning, Push protection, Dependabot alerts y protección de rama en GitHub.
 7. Publica exclusivamente detrás de HTTPS y comprueba las cabeceras con el host definitivo.
